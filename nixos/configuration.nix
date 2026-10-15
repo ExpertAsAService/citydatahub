@@ -130,7 +130,19 @@
   # services.openssh.enable = true;
   services.openssh.enable = true;
 
-  # 
+  # Base PostgreSQL
+  services.postgresql = {
+  enable = true;
+  package = pkgs.postgresql_18;
+  ensureDatabases = [ "citydatahub" ];
+  ensureUsers = [
+  {
+  name = "ericd";
+  } 
+  ];
+  };
+
+  # Divers but important
   nix.settings.experimental-features = [ "nix-command" "flakes" ]; # New features, will be soon the standard
 
   # Open ports in the firewall.
