@@ -130,6 +130,9 @@
   # services.openssh.enable = true;
   services.openssh.enable = true;
 
+  # 
+  nix.settings.experimental-features = [ "nix-command" "flakes" ]; # New features, will be soon the standard
+
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
   # networking.firewall.allowedUDPPorts = [ ... ];
