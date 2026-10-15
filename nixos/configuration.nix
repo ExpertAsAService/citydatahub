@@ -15,9 +15,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   # networking.hostName = "nixos"; # Define your hostname.
+  networking.hostName = "cdh2026";
 
   # Configure network connections interactively with nmcli or nmtui.
-  networking.hostName = "cdh2026";
   networking.networkmanager.enable = true;
 
   # Set your time zone.
@@ -98,9 +98,22 @@
   #   wget
   # ];
   environment.systemPackages = with pkgs; [
+  # Package system
   vim
+  # Gestion du versioning et git cli
   git
   gh
+  # Package de developpement Python
+  (python314.withPackages (ps: with ps; [
+  pip
+  virtualenv 
+  django
+  djangorestframework
+  psycopg2-binary
+  ]))
+  # Package base de données PostgreSQL
+  postgresql
+  pgadmin4
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
