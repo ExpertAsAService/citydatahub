@@ -100,6 +100,8 @@
   environment.systemPackages = with pkgs; [
   # Package system
   vim
+  wget
+  curl
   # Gestion du versioning et git cli
   git
   gh
@@ -110,6 +112,13 @@
   django
   djangorestframework
   psycopg2-binary
+  pandas
+  numpy
+  scipy
+  matplotlib
+  pylint
+  black
+  pytest
   ]))
   # Package base de données PostgreSQL
   postgresql
