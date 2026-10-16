@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : sourcededonnees.py
+Nom du script : module_base.py
 Description : Gére la récupération et la normalisation des données
 
 Auteur : Eric Diologeant
@@ -16,10 +16,9 @@ Usage : Classe abstraite qui ne peut pas être instanciée directement / modèle
 
 from abc import ABC, abstractmethod
 from typing import Iterator
-
 import pandas as pd 
 
-class sourcededonnees (ABC):
+class source_data (ABC):
     """ Descripteur appelé à chaque instanciation """
     def __init__(self, nom: str, description: str = ""):
         self.nom = nom
@@ -33,7 +32,7 @@ class sourcededonnees (ABC):
 
      @abstractmethod
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
-        """ Garantie une mise en forme des données avec des types précis """
+        """ Garantie une mise en forme unique des données avec des types précis """
         ...
 
 

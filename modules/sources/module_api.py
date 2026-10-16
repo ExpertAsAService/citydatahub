@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : indicateur.py
-Description : Représente une mesure avec métadonnées (nom, unité, catégorie)
+Nom du script : module_api.py
+Description : Hérite de module_base.py, interroge une API open data
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026

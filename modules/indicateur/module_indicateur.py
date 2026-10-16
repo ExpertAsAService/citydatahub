@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : analyseur.py
-Description : Calcul teendances, moyennes, pics, agrégations
+Nom du script : module_indicateur.py
+Description : Représente une mesure avec métadonnées (nom, unité, catégorie)
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026

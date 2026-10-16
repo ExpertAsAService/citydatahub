@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : source_csv.py
-Description : Hérite de Sourcededonnees.py, gère l'import massif de fichiers CSV
+Nom du script : module_analyseur.py
+Description : Calcul tendances, moyennes, pics, agrégations
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
