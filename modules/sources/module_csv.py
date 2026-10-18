@@ -9,31 +9,49 @@ Description :   Gère l'import massif de fichiers CSV
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
-Version : 0.1
+Version : 0.2
 Licence : MIT
 Usage : 
 
 """
-from pathlib import Path
-import pandas as pd
-import argparse
 
-class source_csv:
+import argparse
+import pandas as pd
+
+from pathlib import Path
+from typing import Iterator
+from module_base import source_data
+
+class source_csv(source_data):
     """ Desc """
 
-    def __init__(self, chemin: str, taille_lot: int = 10, nom: str = "",description: str = ""):
+    def __init__(self, chemin: str, taille_lot: int = 1000, nom: str = "", description: str = ""):
         self.chemin = Path(chemin)
         self.taille_lot = taille_lot
+        super().__init__(nom=nom or self.chemin.stem, description=description)
     
-    def charge_data(self):
-        """ Desc """
-        for numerolot, lot in enumerate (pd.read_csv(self.chemin, chunksize=self.taille_lot), start=1):
-            print(f"--- lot {numerolot} : {len(lot)} lignes ---")
-            print(lot.to_string(index=False))
+    def recupere_data(self) -> Iterator[pd.DataFrame]: 
+        """ Génère les données du CSV lot par lot """
+        for lot in pd.read_csv(self.chemin, chunksize=self.taille_lot):
+            yield self.normalise_data(lot)
+
+    def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
+        """ A implémenter """
+        return lot
 
 if __name__ == "__main__":
+
+    """ 
+    Usage : python module_csv.py --taille-lot N PATH/FICHIER
+    """
+
     parseur = argparse.ArgumentParser(description="Liste un CSV par lots à l'écran")
     parseur.add_argument("fichier", help="chemin du CSV à lire")
+    parseur.add_argument("--taille-lot", type=int, default=5, help="optionnel, nombre de lignes par lot (défaut: 5)")
     args = parseur.parse_args()
-    source = source_csv(args.fichier)
-    source.charge_data()
+
+    source = source_csv(args.fichier, taille_lot=args.taille_lot)
+    
+    for numerolot, lot in enumerate(source.recupere_data()):
+        print(f"--- lot {numerolot} : {len(lot)} lignes ---")
+        print(lot.to_string(index=False))
