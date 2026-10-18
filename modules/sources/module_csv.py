@@ -3,7 +3,9 @@
 
 """
 Nom du script : module_csv.py
-Description : Hérite de module_base.py, gère l'import massif de fichiers CSV
+Description :   Gère l'import massif de fichiers CSV
+                Mode standard, Hérite de la classe abstraite module_base.py
+                Mode autonome, peut s'éxécuter directement dans le cadre de test et de développement
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
@@ -12,14 +14,15 @@ Licence : MIT
 Usage : 
 
 """
-
+from pathlib import Path
 import pandas as pd
+import argparse
 
 class source_csv:
     """ Desc """
 
-    def __init__(self, chemin: str, taille_lot: int = 5):
-        self.chemin = chemin
+    def __init__(self, chemin: str, taille_lot: int = 10, nom: str = "",description: str = ""):
+        self.chemin = Path(chemin)
         self.taille_lot = taille_lot
     
     def charge_data(self):
@@ -29,5 +32,8 @@ class source_csv:
             print(lot.to_string(index=False))
 
 if __name__ == "__main__":
-    source = source_csv("/home/ericd/citydatahub/data/monfichiertest.csv")
+    parseur = argparse.ArgumentParser(description="Liste un CSV par lots à l'écran")
+    parseur.add_argument("fichier", help="chemin du CSV à lire")
+    args = parseur.parse_args()
+    source = source_csv(args.fichier)
     source.charge_data()

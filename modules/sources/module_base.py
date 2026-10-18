@@ -30,7 +30,7 @@ class source_data (ABC):
         """ Récupération des données par l'intermédiaire d'un générateur de lots pour une utilisation mémoire constante """
         ...
 
-     @abstractmethod
+    @abstractmethod
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         """ Garantie une mise en forme unique des données avec des types précis """
         ...
