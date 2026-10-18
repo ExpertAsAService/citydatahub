@@ -16,10 +16,10 @@ Usage : python tests/create_fichier_csv.py
 import csv
 from datetime import datetime, timedelta
 
-with open("data/monfichiertest.csv", "w", newline="") as f:
+with open("/home/ericd/citydatahub/data/monfichiertest.csv", "w", newline="") as f:
     fichier = csv.writer(f)
     fichier.writerow(["date", "valeur", "indicateur"])    # en-tête
-    for i in range(100):                                    # 10 lignes
+    for i in range(37):                                    # 10 lignes
         date = datetime(2026, 10, 1) + timedelta(hours=i)
         fichier.writerow([date, 20 + i, "temperature"])   # 20, 21, 22...
 

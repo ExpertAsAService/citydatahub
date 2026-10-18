@@ -19,7 +19,15 @@ class source_csv:
     """ Desc """
 
     def __init__(self, chemin: str, taille_lot: int = 5):
-        self.chemin = Path(chemin)
+        self.chemin = chemin
         self.taille_lot = taille_lot
     
     def charge_data(self):
+        """ Desc """
+        for numerolot, lot in enumerate (pd.read_csv(self.chemin, chunksize=self.taille_lot), start=1):
+            print(f"--- lot {numerolot} : {len(lot)} lignes ---")
+            print(lot.to_string(index=False))
+
+if __name__ == "__main__":
+    source = source_csv("/home/ericd/citydatahub/data/monfichiertest.csv")
+    source.charge_data()
