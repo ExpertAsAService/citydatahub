@@ -7,22 +7,33 @@ Description : Hérite de module_base.py, interroge une API open data
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
-Version : 0.2
+Version : 0.3
 Licence : MIT
 Usage : 
 
 """
 
 import sys
+import time
 import argparse
 import json
 import requests
 import pandas as pd
 
-from typing import Iterator
+from typing import Any, Iterator
+from urllib.parse import urlparse
+
 from module_base import source_data
 
 FORMAT_API = {"date", "valeur"}
+
+def extracteur_open_meteo(reponse: Any) -> list[dict]:
+    """Extrait date + température du format hourly d'Open-Meteo."""
+    hourly = reponse["hourly"]
+    return [
+        {"date": t, "valeur": v}
+        for t, v in zip(hourly["time"], hourly["temperature_2m"])
+    ]
 
 class erreur_api(Exception):
     # To be define if necessary
@@ -32,54 +43,65 @@ class source_api(source_data):
     # Traitement d'une api, 
     # Sortie selon un format utilisable, nettoyage des lignes incorrecte
 
-    def __init__(self, url: str, nom: str = "", description: str = ""):
+    def __init__(self, url: str, ville: str = "inconnue", nom: str = "", description: str = "", extracteur=None, tentatives: int = 3, timeout: int = 10):
         self.url = url
-        self.verifie_api()
+        self.ville = ville
+        self.extracteur = extracteur or extracteur_open_meteo
+        self.tentatives = tentatives
+        self.timeout = timeout
+        self._verifie_url()
         super().__init__(nom=nom or self.url, description=description)
     
-    def verifie_api(self) -> None:
+    def _verifie_url(self) -> None:
         # Vérifie la cohérence de l'URL avant toute requête.
         if not self.url.startswith(("http://", "https://")):
             raise erreur_api(f"URL invalide (schéma manquant) : {self.url}")
         try:
-            from urllib.parse import urlparse
             if not urlparse(self.url).netloc:
                 raise erreur_api(f"URL sans nom de domaine : {self.url}")
         except ValueError as e:
             raise erreur_api(f"URL illisible : {e}") from None
 
-    def recupere_data(self) -> pd.DataFrame:
-        # 1 source API - A développer
-        # Vérification du retour http  
-        try:
-            reponse = requests.get(self.url, timeout=10)
-            reponse.raise_for_status()
-        except requests.Timeout:
-            raise erreur_api(f"Délai dépassé : {self.url}") from None
-        except requests.RequestException as e:
-            raise erreur_api(f"Requête impossible ({e}) : {self.url}") from None
+    def recupere_data(self) -> Iterator[pd.DataFrame]:
+        # Coeur du mécanisme de récupération des données
+        reponse = self.requete_api()
+        databloc = self.extraire_data(reponse) # format vérifié, erreurs métier
+        if not databloc:
+            raise erreur_api(f"Aucune donnée extraite depuis {self.url}")
+        yield self.normalise_data(pd.DataFrame(databloc))
 
-        # Test sur le format de la réponse et conversion
+    def extraire_data(self, reponse: Any) -> list[dict]:
+        # Extraction des données
         try:
-            donnees = reponse.json()
-            hourly = donnees["hourly"]
-            lot = pd.DataFrame({
-                "date": hourly["time"],
-                "valeur": hourly["temperature_2m"],
-            })
-        except (json.JSONDecodeError, ValueError) as e:
-            raise erreur_api(f"Réponse non JSON : {e}") from None
-        except KeyError:
+            return self.extracteur(reponse)
+        except (KeyError, TypeError, AttributeError) as e:
             raise erreur_api(
-                f"Bloc 'hourly' incomplet — clés reçues : {list(donnees)}"
-            ) from None
+            f"Format de réponse inattendu depuis {self.url} "
+            f"(extrait attendu introuvable : {e!r})"
+            ) from e
 
-        return self.normalise_data(lot)
+    def requete_api(self) -> Any:
+        #  Vérification du retour http, gestion des erreurs et retry
+        derniere_erreur: Exception | None = None
+        for tentative in range(1, self.tentatives + 1):
+            try:
+                reponse = requests.get(self.url, timeout=self.timeout)
+                reponse.raise_for_status()
+                return reponse.json()
+            except (requests.Timeout, requests.HTTPError, requests.ConnectionError, requests.RequestException, json.JSONDecodeError) as e:
+                derniere_erreur = e
+                if getattr(e, "response", None) is not None and e.response.status_code == 429:
+                    time.sleep(2 ** tentative)
+                else:
+                    time.sleep(tentative)
+        raise erreur_api(
+            f"Échec API {self.url} après {self.tentatives} tentatives"
+        ) from derniere_erreur
 
 
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         # Mets en forme le retour en fonction du FORMAT, vérifie le cohérence des valeurs et supprime les enregistrements incorrects.
-        self.verifie_frame_valide(lot)
+        self._verifie_dataframe_valide(lot)
 
         correct = (
             lot.assign(
@@ -88,17 +110,18 @@ class source_api(source_data):
             )
             .dropna(subset=["date", "valeur"])
             .loc[lambda d: d["valeur"].isin([float("inf"), float("-inf")]) == False]
-            .assign(ville="paris",indicateur="température")
+            .assign(ville=self.ville,indicateur=self.nom)
             .reset_index(drop=True)
         )
         return correct[["date", "valeur", "ville", "indicateur"]]
 
-    def verifie_frame_valide(self, lot: pd.DataFrame) -> None:
+    def _verifie_dataframe_valide(self, lot: pd.DataFrame) -> None:
         manquantes = FORMAT_API - set(lot.columns)
         if manquantes:
             raise erreur_api(
                 f"L'extracteur doit produire 'date' et 'valeur', "
                 f"reçu : {list(lot.columns)} (manquant : {sorted(manquantes)})"              )
+
 
 if __name__ == "__main__":
 
@@ -121,18 +144,13 @@ if __name__ == "__main__":
     )
 
     try:
-        source = source_api(url)
-        df = source.recupere_data()
-
-        print(f"{'='*60}")
-        print(f" Températures prévues — {len(df)} relevés")
-        print(f"{'='*60}")
-        print(df.to_string(index=False, max_rows=10))
-
-        print(f"\nMin    : {df['valeur'].min():.1f} °C")
-        print(f"Max    : {df['valeur'].max():.1f} °C")
-        print(f"Moyenne: {df['valeur'].mean():.1f} °C")
-
+        source = source_api(url, ville="paris", nom="temperature_2m")
+        for numerolot, df in enumerate(source.recupere_data()):
+            print(f"{'='*60}\n lot {numerolot} — {len(df)} relevés\n{'='*60}")
+            print(df.to_string(index=False, max_rows=10))
+            print(f"\nMin    : {df['valeur'].min():.1f} °C")
+            print(f"Max    : {df['valeur'].max():.1f} °C")
+            print(f"Moyenne: {df['valeur'].mean():.1f} °C")
     except erreur_api as erreur:
         print(f" {erreur}", file=sys.stderr)
         sys.exit(1)

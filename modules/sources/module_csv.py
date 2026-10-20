@@ -21,6 +21,7 @@ import pandas as pd
 
 from pathlib import Path
 from typing import Iterator
+
 from module_base import source_data
 
 FORMAT_CSV = {"date", "valeur", "ville", "indicateur"}
@@ -36,10 +37,10 @@ class source_csv(source_data):
     def __init__(self, chemin: str, taille_lot: int = 1000, nom: str = "", description: str = ""):
         self.chemin = Path(chemin)
         self.taille_lot = taille_lot
-        self.verifie_file()
+        self._verifie_file()
         super().__init__(nom=nom or self.chemin.stem, description=description)
 
-    def verifie_file(self) -> None:
+    def _verifie_file(self) -> None:
         # Vérifie l'existence du fichier et que ce n'est pas un répertoire
         if not self.chemin.exists():
             raise erreur_csv(f"Fichier introuvable : {self.chemin}")
@@ -70,7 +71,7 @@ class source_csv(source_data):
 
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         # Mets en forme le csv en fonction du FORMAT, vérifie le cohérence des valeurs et supprime les enregistrements incorrects.
-        self.verifie_frame_valide(lot)
+        self._verifie_dataframe_valide(lot)
 
         correct = (
             lot.assign(
@@ -85,7 +86,7 @@ class source_csv(source_data):
         )
         return correct[["date", "valeur", "ville", "indicateur"]]
 
-    def verifie_frame_valide(self, lot: pd.DataFrame) -> None:
+    def _verifie_dataframe_valide(self, lot: pd.DataFrame) -> None:
         manquantes = FORMAT_CSV - set(lot.columns)
         if manquantes:
             raise erreur_csv(f"Colonnes manquantes dans {self.chemin} : {sorted(manquantes)}")
