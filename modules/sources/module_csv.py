@@ -38,11 +38,6 @@ class source_csv(source_data):
         self.taille_lot = taille_lot
         self.verifie_file()
         super().__init__(nom=nom or self.chemin.stem, description=description)
-    
-    def recupere_data(self) -> Iterator[pd.DataFrame]: 
-        # Génère les données du CSV lot par lot
-        for lot in pd.read_csv(self.chemin, chunksize=self.taille_lot, sep=r"[,;\t]", engine="python"):
-            yield self.normalise_data(lot)
 
     def verifie_file(self) -> None:
         # Vérifie l'existence du fichier et que ce n'est pas un répertoire
@@ -67,10 +62,15 @@ class source_csv(source_data):
             raise erreur_csv(f"Format CSV invalide : {self.chemin}") from None
         except UnicodeDecodeError:
             raise erreur_csv(f"Format non supporté : {self.chemin}") from None
+    
+    def recupere_data(self) -> Iterator[pd.DataFrame]: 
+        # Génère les données du CSV lot par lot
+        for lot in pd.read_csv(self.chemin, chunksize=self.taille_lot, sep=r"[,;\t]", engine="python"):
+            yield self.normalise_data(lot)
 
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         # Mets en forme le csv en fonction du FORMAT, vérifie le cohérence des valeurs et supprime les enregistrements incorrects.
-        self.verifie_csv_valide(lot)
+        self.verifie_frame_valide(lot)
 
         correct = (
             lot.assign(
@@ -85,7 +85,7 @@ class source_csv(source_data):
         )
         return correct[["date", "valeur", "ville", "indicateur"]]
 
-    def verifie_csv_valide(self, lot: pd.DataFrame) -> None:
+    def verifie_frame_valide(self, lot: pd.DataFrame) -> None:
         manquantes = FORMAT_CSV - set(lot.columns)
         if manquantes:
             raise erreur_csv(f"Colonnes manquantes dans {self.chemin} : {sorted(manquantes)}")
