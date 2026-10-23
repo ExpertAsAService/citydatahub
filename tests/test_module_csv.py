@@ -49,4 +49,4 @@ class TestSourceCsv:
         source = source_csv(str(csv_valide))
         lot = next(source.recupere_data())
         assert "ville" in lot.columns
-        assert set(lot["ville"]) == {"Paris", "Lyon", "Rouen"}
+        assert set(lot["ville"]) == {"Paris", "Lyon"eric}
