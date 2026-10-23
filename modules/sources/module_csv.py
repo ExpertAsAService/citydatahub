@@ -9,7 +9,7 @@ Description :   Gère l'import massif de fichiers CSV
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
-Version : 0.4
+Version : 0.5
 Licence : MIT
 Usage : 
 

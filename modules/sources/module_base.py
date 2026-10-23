@@ -35,4 +35,5 @@ class source_data (ABC):
         """ Garantie une mise en forme unique des données avec des types précis """
         ...
 
-
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} nom={self.nom!r}>"

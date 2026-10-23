@@ -7,7 +7,7 @@ Description : Hérite de module_base.py, interroge une API open data
 
 Auteur : Eric Diologeant
 Date : 16 Octobre 2026
-Version : 0.3
+Version : 0.5
 Licence : MIT
 Usage : 
 
