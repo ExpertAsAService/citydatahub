@@ -138,6 +138,7 @@ if __name__ == "__main__":
 
     try:
         from .extracteurs import extracteur_open_meteo   # import local au démo
+        # Par défaut la ville et le type sont toujours les mêmes
         source = source_api(url, ville="Paris", nom="temperature",
                             extracteur=extracteur_open_meteo)
         for numerolot, df in enumerate(source.recupere_data()):
