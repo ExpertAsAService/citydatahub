@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+Nom du script : fournisseurs.py
+Description : 
+
+Auteur : Eric Diologeant
+Date : 23 Octobre 2026
+Version : 0.1
+Licence : MIT
+Usage : 
+
+"""
+
+from .extracteurs import (
+    extracteur_open_meteo,
+)
+
+
+def _open_meteo_meteo(ville: str, lat: float, lon: float) -> dict:
+    return {
+        "url": ("https://api.open-meteo.com/v1/forecast"
+                f"?latitude={lat}&longitude={lon}"
+                "&hourly=temperature_2m&past_days=7"),
+        "extracteur": extracteur_open_meteo,
+        "nom": "temperature",
+        "ville": ville,
+    }
+
+FOURNISSEURS = {
+    "meteo_paris": _open_meteo_meteo("Paris", 48.85, 2.35),
+    "meteo_lyon": _open_meteo_meteo("Lyon", 45.75, 4.85),
+}
+
+
+def creer_source(cle: str) -> "source_api":
+    """Sélectionne un fournisseur du registre et rend la source prête."""
+    from .module_api import source_api
+    conf = FOURNISSEURS[cle]
+    return source_api(url=conf["url"], extracteur=conf["extracteur"],
+                      nom=conf["nom"], ville=conf["ville"])

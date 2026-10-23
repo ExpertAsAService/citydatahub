@@ -22,7 +22,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Iterator
 
-from module_base import source_data
+from .module_base import source_data
 
 FORMAT_CSV = {"date", "valeur", "ville", "indicateur"}
 
@@ -54,7 +54,6 @@ class source_csv(source_data):
             df = pd.read_csv(self.chemin, chunksize=1, nrows=1, sep=r"[,;\t]", engine="python")
             next(iter(df))
             df.close()
-            print("CSV valide - poursuite du traitement : ")
         except StopIteration:
             raise erreur_csv(f"Contenu vide ou séparateur non détecté : {self.chemin}") from None
         except pd.errors.EmptyDataError:
@@ -77,7 +76,7 @@ class source_csv(source_data):
             lot.assign(
                 date=pd.to_datetime(lot["date"], errors="coerce"),
                 valeur=pd.to_numeric(lot["valeur"], errors="coerce"),
-                ville=lot["ville"].astype("string").str.strip().str.lower(),
+                ville=lot["ville"].astype("string").str.strip(),
                 indicateur=lot["indicateur"].astype("string").str.strip(),
             )
             .dropna(subset=["date", "valeur", "ville", "indicateur"])

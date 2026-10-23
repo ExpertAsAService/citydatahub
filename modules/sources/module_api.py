@@ -23,17 +23,9 @@ import pandas as pd
 from typing import Any, Iterator
 from urllib.parse import urlparse
 
-from module_base import source_data
+from .module_base import source_data
 
 FORMAT_API = {"date", "valeur"}
-
-def extracteur_open_meteo(reponse: Any) -> list[dict]:
-    """Extrait date + température du format hourly d'Open-Meteo."""
-    hourly = reponse["hourly"]
-    return [
-        {"date": t, "valeur": v}
-        for t, v in zip(hourly["time"], hourly["temperature_2m"])
-    ]
 
 class erreur_api(Exception):
     # To be define if necessary
@@ -43,14 +35,19 @@ class source_api(source_data):
     # Traitement d'une api, 
     # Sortie selon un format utilisable, nettoyage des lignes incorrecte
 
-    def __init__(self, url: str, ville: str = "inconnue", nom: str = "", description: str = "", extracteur=None, tentatives: int = 3, timeout: int = 10):
+    def __init__(self, url: str, ville: str = "inconnue", nom: str = "", description: str = "",  extracteur=None, tentatives: int = 3, timeout: int = 10):
         self.url = url
         self.ville = ville
-        self.extracteur = extracteur or extracteur_open_meteo
+        self.extracteur = extracteur
         self.tentatives = tentatives
         self.timeout = timeout
         self._verifie_url()
         super().__init__(nom=nom or self.url, description=description)
+        if self.extracteur is None:
+            raise erreur_api(
+                f"Un extracteur est requis pour {self.nom or self.url} : "
+                "fonction (dict) -> list[dict] '{date, valeur}'"
+            )
     
     def _verifie_url(self) -> None:
         # Vérifie la cohérence de l'URL avant toute requête.
@@ -129,10 +126,6 @@ if __name__ == "__main__":
     Usage : python module_api.py [--url URL] OR [--latitude F] [--longitude F]
     """
 
-    # Information de base trouvée sur le site https://open-meteo.com/
-    #url = ("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m")
-    #url = ("https://api.open-meteo.com/v1/forecast?latitude=48.85&longitude=2.35&hourly=temperature_2m")
-    
     parseur = argparse.ArgumentParser(description="Interroge l'API Open-Meteo et affiche les températures")
     parseur.add_argument("--latitude", type=float, default=48.85, help="latitude (défaut : Paris)")
     parseur.add_argument("--longitude", type=float, default=2.35, help="longitude (défaut : Paris)")
@@ -144,7 +137,9 @@ if __name__ == "__main__":
     )
 
     try:
-        source = source_api(url, ville="paris", nom="temperature_2m")
+        from .extracteurs import extracteur_open_meteo   # import local au démo
+        source = source_api(url, ville="Paris", nom="temperature",
+                            extracteur=extracteur_open_meteo)
         for numerolot, df in enumerate(source.recupere_data()):
             print(f"{'='*60}\n lot {numerolot} — {len(df)} relevés\n{'='*60}")
             print(df.to_string(index=False, max_rows=10))
