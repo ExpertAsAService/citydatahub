@@ -3,13 +3,13 @@
 
 """
 Nom du script : fournisseurs.py
-Description : 
+Description :
 
 Auteur : Eric Diologeant
 Date : 23 Octobre 2026
 Version : 0.5
 Licence : MIT
-Usage : 
+Usage :
 
 """
 
@@ -22,9 +22,11 @@ from .extracteurs import (
 
 def _open_meteo_meteo(ville: str, lat: float, lon: float) -> dict:
     return {
-        "url": ("https://api.open-meteo.com/v1/forecast"
-                f"?latitude={lat}&longitude={lon}"
-                "&hourly=temperature_2m&past_days=7"),
+        "url": (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            "&hourly=temperature_2m&past_days=7"
+        ),
         "extracteur": extracteur_open_meteo,
         "nom": "temperature",
         "ville": ville,
@@ -33,9 +35,11 @@ def _open_meteo_meteo(ville: str, lat: float, lon: float) -> dict:
 
 def _open_meteo_air(ville: str, lat: float, lon: float) -> dict:
     return {
-        "url": ("https://air-quality-api.open-meteo.com/v1/air-quality"
-                f"?latitude={lat}&longitude={lon}"
-                "&hourly=pm2_5&past_days=7"),
+        "url": (
+            "https://air-quality-api.open-meteo.com/v1/air-quality"
+            f"?latitude={lat}&longitude={lon}"
+            "&hourly=pm2_5&past_days=7"
+        ),
         "extracteur": extracteur_qualite_air,
         "nom": "pollution_pm25",
         "ville": ville,
@@ -44,9 +48,11 @@ def _open_meteo_air(ville: str, lat: float, lon: float) -> dict:
 
 def _velo_paris(stationcode: int, ville: str = "Paris") -> dict:
     return {
-        "url": ("https://opendata.paris.fr/api/explore/v2.1/"
-                f"catalog/datasets/velib-disponibilite-en-temps-reel/records"
-                f"?where=stationcode%3D%22{stationcode}%22&limit=100"),
+        "url": (
+            "https://opendata.paris.fr/api/explore/v2.1/"
+            f"catalog/datasets/velib-disponibilite-en-temps-reel/records"
+            f"?where=stationcode%3D%22{stationcode}%22&limit=100"
+        ),
         "extracteur": extracteur_velo_paris,
         "nom": "velos_disponibles",
         "ville": ville,
@@ -64,6 +70,11 @@ FOURNISSEURS = {
 def creer_source(cle: str) -> "source_api":
     """Sélectionne un fournisseur du registre et rend la source prête."""
     from .module_api import source_api
+
     conf = FOURNISSEURS[cle]
-    return source_api(url=conf["url"], extracteur=conf["extracteur"],
-                      nom=conf["nom"], ville=conf["ville"])
+    return source_api(
+        url=conf["url"],
+        extracteur=conf["extracteur"],
+        nom=conf["nom"],
+        ville=conf["ville"],
+    )

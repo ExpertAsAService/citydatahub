@@ -16,23 +16,24 @@ Usage : Classe abstraite qui ne peut pas être instanciée directement / modèle
 
 from abc import ABC, abstractmethod
 from typing import Iterator
-import pandas as pd 
+import pandas as pd
 
-class source_data (ABC):
-    """ Descripteur appelé à chaque instanciation """
+
+class source_data(ABC):
+    """Descripteur appelé à chaque instanciation"""
+
     def __init__(self, nom: str, description: str = ""):
         self.nom = nom
         self.description = description
-    
 
     @abstractmethod
     def recupere_data(self) -> Iterator[pd.DataFrame]:
-        """ Récupération des données par l'intermédiaire d'un générateur de lots pour une utilisation mémoire constante """
+        """Récupération des données par l'intermédiaire d'un générateur de lots pour une utilisation mémoire constante"""
         ...
 
     @abstractmethod
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
-        """ Garantie une mise en forme unique des données avec des types précis """
+        """Garantie une mise en forme unique des données avec des types précis"""
         ...
 
     def __repr__(self) -> str:

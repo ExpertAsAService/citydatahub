@@ -9,7 +9,7 @@ Auteur : Eric Diologeant
 Date : 16 Octobre 2026
 Version : 0.5
 Licence : MIT
-Usage : 
+Usage :
 
 """
 
@@ -27,15 +27,26 @@ from .module_base import source_data
 
 FORMAT_API = {"date", "valeur"}
 
+
 class erreur_api(Exception):
     # To be define if necessary
     pass
 
+
 class source_api(source_data):
-    # Traitement d'une api, 
+    # Traitement d'une api,
     # Sortie selon un format utilisable, nettoyage des lignes incorrecte
 
-    def __init__(self, url: str, ville: str = "inconnue", nom: str = "", description: str = "",  extracteur=None, tentatives: int = 3, timeout: int = 10):
+    def __init__(
+        self,
+        url: str,
+        ville: str = "inconnue",
+        nom: str = "",
+        description: str = "",
+        extracteur=None,
+        tentatives: int = 3,
+        timeout: int = 10,
+    ):
         self.url = url
         self.ville = ville
         self.extracteur = extracteur
@@ -48,7 +59,7 @@ class source_api(source_data):
                 f"Un extracteur est requis pour {self.nom or self.url} : "
                 "fonction (dict) -> list[dict] '{date, valeur}'"
             )
-    
+
     def _verifie_url(self) -> None:
         # Vérifie la cohérence de l'URL avant toute requête.
         if not self.url.startswith(("http://", "https://")):
@@ -62,7 +73,7 @@ class source_api(source_data):
     def recupere_data(self) -> Iterator[pd.DataFrame]:
         # Coeur du mécanisme de récupération des données
         reponse = self.requete_api()
-        databloc = self.extraire_data(reponse) # format vérifié, erreurs métier
+        databloc = self.extraire_data(reponse)  # format vérifié, erreurs métier
         if not databloc:
             raise erreur_api(f"Aucune donnée extraite depuis {self.url}")
         yield self.normalise_data(pd.DataFrame(databloc))
@@ -73,8 +84,8 @@ class source_api(source_data):
             return self.extracteur(reponse)
         except (KeyError, TypeError, AttributeError) as e:
             raise erreur_api(
-            f"Format de réponse inattendu depuis {self.url} "
-            f"(extrait attendu introuvable : {e!r})"
+                f"Format de réponse inattendu depuis {self.url} "
+                f"(extrait attendu introuvable : {e!r})"
             ) from e
 
     def requete_api(self) -> Any:
@@ -85,16 +96,24 @@ class source_api(source_data):
                 reponse = requests.get(self.url, timeout=self.timeout)
                 reponse.raise_for_status()
                 return reponse.json()
-            except (requests.Timeout, requests.HTTPError, requests.ConnectionError, requests.RequestException, json.JSONDecodeError) as e:
+            except (
+                requests.Timeout,
+                requests.HTTPError,
+                requests.ConnectionError,
+                requests.RequestException,
+                json.JSONDecodeError,
+            ) as e:
                 derniere_erreur = e
-                if getattr(e, "response", None) is not None and e.response.status_code == 429:
-                    time.sleep(2 ** tentative)
+                if (
+                    getattr(e, "response", None) is not None
+                    and e.response.status_code == 429
+                ):
+                    time.sleep(2**tentative)
                 else:
                     time.sleep(tentative)
         raise erreur_api(
             f"Échec API {self.url} après {self.tentatives} tentatives"
         ) from derniere_erreur
-
 
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         # Mets en forme le retour en fonction du FORMAT, vérifie le cohérence des valeurs et supprime les enregistrements incorrects.
@@ -103,11 +122,11 @@ class source_api(source_data):
         correct = (
             lot.assign(
                 date=pd.to_datetime(lot["date"], errors="coerce"),
-                valeur=pd.to_numeric(lot["valeur"], errors="coerce")
+                valeur=pd.to_numeric(lot["valeur"], errors="coerce"),
             )
             .dropna(subset=["date", "valeur"])
             .loc[lambda d: d["valeur"].isin([float("inf"), float("-inf")]) == False]
-            .assign(ville=self.ville,indicateur=self.nom)
+            .assign(ville=self.ville, indicateur=self.nom)
             .reset_index(drop=True)
         )
         return correct[["date", "valeur", "ville", "indicateur"]]
@@ -117,19 +136,28 @@ class source_api(source_data):
         if manquantes:
             raise erreur_api(
                 f"L'extracteur doit produire 'date' et 'valeur', "
-                f"reçu : {list(lot.columns)} (manquant : {sorted(manquantes)})"              )
+                f"reçu : {list(lot.columns)} (manquant : {sorted(manquantes)})"
+            )
 
 
 if __name__ == "__main__":
 
-    """ 
+    """
     Usage : python module_api.py [--url URL] OR [--latitude F] [--longitude F]
     """
 
-    parseur = argparse.ArgumentParser(description="Interroge l'API Open-Meteo et affiche les températures")
-    parseur.add_argument("--latitude", type=float, default=48.85, help="latitude (défaut : Paris)")
-    parseur.add_argument("--longitude", type=float, default=2.35, help="longitude (défaut : Paris)")
-    parseur.add_argument("--url", default=None, help="URL complète (surclasse latitude/longitude)")
+    parseur = argparse.ArgumentParser(
+        description="Interroge l'API Open-Meteo et affiche les températures"
+    )
+    parseur.add_argument(
+        "--latitude", type=float, default=48.85, help="latitude (défaut : Paris)"
+    )
+    parseur.add_argument(
+        "--longitude", type=float, default=2.35, help="longitude (défaut : Paris)"
+    )
+    parseur.add_argument(
+        "--url", default=None, help="URL complète (surclasse latitude/longitude)"
+    )
     args = parseur.parse_args()
 
     url = args.url or (
@@ -137,10 +165,12 @@ if __name__ == "__main__":
     )
 
     try:
-        from .extracteurs import extracteur_open_meteo   # import local au démo
+        from .extracteurs import extracteur_open_meteo  # import local au démo
+
         # Par défaut la ville et le type sont toujours les mêmes
-        source = source_api(url, ville="Paris", nom="temperature",
-                            extracteur=extracteur_open_meteo)
+        source = source_api(
+            url, ville="Paris", nom="temperature", extracteur=extracteur_open_meteo
+        )
         for numerolot, df in enumerate(source.recupere_data()):
             print(f"{'='*60}\n lot {numerolot} — {len(df)} relevés\n{'='*60}")
             print(df.to_string(index=False, max_rows=10))

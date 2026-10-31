@@ -3,7 +3,7 @@
 
 """
 Nom du script : /test_module_csv.py
-Description : test 
+Description : test
 
 Auteur : Eric Diologeant
 Date : 23 Octobre 2026
@@ -36,7 +36,7 @@ class TestSourceCsv:
         """Les lignes 'pas-un-nombre' et vides doivent être écartées."""
         source = source_csv(str(csv_valide))
         lot = next(source.recupere_data())
-        assert len(lot) == 3          # 5 lignes - 2 invalides
+        assert len(lot) == 3  # 5 lignes - 2 invalides
 
     def test_traitement_par_lots(self, csv_valide):
         """chunksize=2 sur 5 lignes valides -> plusieurs lots."""

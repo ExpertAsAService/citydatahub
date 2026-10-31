@@ -9,6 +9,6 @@ Auteur : Eric Diologeant
 Date : 16 Octobre 2026
 Version : 0.1
 Licence : MIT
-Usage : 
+Usage :
 
 """
