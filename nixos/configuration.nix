@@ -117,6 +117,7 @@
   django
   djangorestframework
   psycopg2-binary
+  requests
   pandas
   numpy
   scipy
@@ -130,9 +131,16 @@
   pgadmin4
   ];
 
-  # Ajout pour remote-ssh de VS code
-  programs.nix-ld.enable = true;
-
+  # Ajout pour remote-ssh de VS code + compatibilité avec des binaires qui recherche /lib
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      stdenv.cc.cc.lib    # libstdc++ 
+      zlib
+      zstd
+      gcc.cc.lib
+    ];
+  };
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
