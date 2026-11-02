@@ -131,6 +131,15 @@
   pgadmin4
   ];
 
+  # Ajout pour exporter les variables d'environnement /lib
+  environment.variables = {
+    LD_LIBRARY_PATH = [
+      "${pkgs.stdenv.cc.cc.lib}/lib"   # libstdc++
+      "${pkgs.zlib}/lib"               # libz.so.1 (psycopg2)
+      "${pkgs.zstd}/lib"               # zstd
+    ];
+  };
+
   # Ajout pour remote-ssh de VS code + compatibilité avec des binaires qui recherche /lib
   programs.nix-ld = {
     enable = true;
@@ -160,11 +169,7 @@
   enable = true;
   package = pkgs.postgresql_18;
   ensureDatabases = [ "citydatahub" ];
-  ensureUsers = [
-  {
-  name = "ericd";
-  } 
-  ];
+  ensureUsers = [ { name = "ericd";  } ];
   };
 
   # Divers but important
