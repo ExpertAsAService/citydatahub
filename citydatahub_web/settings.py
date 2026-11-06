@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "indicateurs",
 ]
 
 MIDDLEWARE = [
@@ -74,8 +75,11 @@ WSGI_APPLICATION = "citydatahub_web.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "citydatahub",       # la base créée en S3
+        # pas de USER/PASSWORD : psycopg2 prend l'utilisateur OS,
+        # authentification peer de NixOS
+        "OPTIONS": {"connect_timeout": 3},
     }
 }
 
@@ -104,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 

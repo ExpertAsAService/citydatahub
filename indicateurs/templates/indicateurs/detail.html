@@ -1,0 +1,29 @@
+{% extends "indicateurs/base.html" %}
+{% block contenu %}
+    <h1>{{ indicateur }}</h1>
+    <table>
+        {% for m in mesures %}
+        <tr><td>{{ m.date }}</td><td>{{ m.ville }}</td><td>{{ m.valeur }}</td></tr>
+        {% endfor %}
+    </table>
+
+    {{ series|json_script:"series-data" }}      <!-- la façon SAFE d'injecter du JSON -->
+
+    <canvas id="graphique" width="600" height="300"></canvas>
+    <script>
+        const series = JSON.parse(document.getElementById("series-data").textContent);
+        // une ligne par ville sur le même graphique
+        const villes = [...new Set(series.map(s => s.ville))];
+        new Chart(document.getElementById("graphique"), {
+            type: "line",
+            data: {
+                datasets: villes.map(ville => ({
+                    label: ville,
+                    data: series.filter(s => s.ville === ville)
+                                 .map(s => ({x: s.date, y: s.valeur})),
+                })),
+            },
+            options: { parsing: false, responsive: true },
+        });
+    </script>
+{% endblock %}
