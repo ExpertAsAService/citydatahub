@@ -28,7 +28,6 @@ CSV_MAUVAIS_FORMAT = """jour,mesure
 2026-10-01,18.5
 """
 
-
 @pytest.fixture
 def csv_valide(tmp_path):
     chemin = tmp_path / "mesures.csv"
@@ -48,3 +47,16 @@ def csv_vide(tmp_path):
     chemin = tmp_path / "vide.csv"
     chemin.write_text("")
     return chemin
+
+@pytest.fixture
+def stockage_factice(tmp_path):
+    """Remplace la base par un stub en mémoire : renvoie le nombre de lignes."""
+    from modules.stockage.stockage_postgres import stockage_postgres
+
+    class stockage_stub(stockage_postgres):
+        def __init__(self):
+            self.insere_lignes = 0
+        def insere(self, lot):
+            self.insere_lignes += len(lot)
+            return len(lot)
+    return stockage_stub()
