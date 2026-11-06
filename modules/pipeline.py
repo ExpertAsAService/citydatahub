@@ -17,22 +17,26 @@ from .sources import FOURNISSEURS, creer_source, source_csv, erreur_csv, erreur_
 from .stockage.stockage_postgres import stockage_postgres, erreur_stockage
 
 
-def execute(sources: dict, stockage: stockage_postgres,
-            taille_lot: int = 10_000) -> dict:
+def execute(
+    sources: dict, stockage: stockage_postgres, taille_lot: int = 10_000
+) -> dict:
     """Itère les sources, stocke chaque lot, rend le bilan par source."""
     bilan = {}
     for cle, fabrique in sources.items():
-        source = fabrique() 
+        source = fabrique()
         lignes, erreur = 0, None
         try:
             for lot in source.recupere_data():
                 lignes += stockage.insere(lot)
         except (erreur_api, erreur_csv, erreur_stockage) as e:
-            erreur = str(e)         # on journalise, on NE LÈVE PAS
+            erreur = str(e)  # on journalise, on NE LÈVE PAS
         bilan[cle] = {"lignes": lignes, "erreur": erreur}
-        print(f"[{cle}] {lignes} lignes stockées"
-              + (f" | ⚠ {erreur}" if erreur else " | OK"))
+        print(
+            f"[{cle}] {lignes} lignes stockées"
+            + (f" | ⚠ {erreur}" if erreur else " | OK")
+        )
     return bilan
+
 
 if __name__ == "__main__":
     import sys

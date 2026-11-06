@@ -20,12 +20,13 @@ from datetime import datetime, timedelta
 
 # bornes par ville -> données plausibles ET répartition contrôlée
 VILLES = {
-    "Paris":      {"lat": 48.85, "plage": (-5, 35)},
-    "Lyon":       {"lat": 45.75, "plage": (-7, 37)},
-    "Marseille":  {"lat": 43.30, "plage": (-3, 40)},
-    "Rouen":     {"lat": 49.44, "plage": (-12, 33)},
+    "Paris": {"lat": 48.85, "plage": (-5, 35)},
+    "Lyon": {"lat": 45.75, "plage": (-7, 37)},
+    "Marseille": {"lat": 43.30, "plage": (-3, 40)},
+    "Rouen": {"lat": 49.44, "plage": (-12, 33)},
 }
 INDICATEURS = ["temperature", "pollution_pm25", "velos_disponibles"]
+
 
 def genere_mesures(debut: datetime, heures: int):
     for h in range(heures):
@@ -44,8 +45,12 @@ def genere_mesures(debut: datetime, heures: int):
 
 def main() -> None:
     parseur = argparse.ArgumentParser(description="Génère des CSV fictifs massifs.")
-    parseur.add_argument("--heures", type=int, default=200_000,
-                         help="nombre d'heures simulées (défaut : 200000)")
+    parseur.add_argument(
+        "--heures",
+        type=int,
+        default=200_000,
+        help="nombre d'heures simulées (défaut : 200000)",
+    )
     parseur.add_argument("--sortie", default="data/mesures_fictives.csv")
     args = parseur.parse_args()
 

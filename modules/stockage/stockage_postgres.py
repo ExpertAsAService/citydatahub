@@ -78,10 +78,8 @@ class stockage_postgres:
 def psycopg2_method_insert_par_lots(table, conn, keys, data_iter):
     """Méthode to_sql : INSERT multiplicité (execute_values) au lieu du
     row-by-row — des dizaines de fois plus rapide sur de gros volumes."""
-    requete = (
-        f"INSERT INTO {table.name} ({', '.join(keys)}) VALUES %s"
-    )
-    lignes = [ligne for ligne in data_iter]          # itérateur -> liste de tuples
+    requete = f"INSERT INTO {table.name} ({', '.join(keys)}) VALUES %s"
+    lignes = [ligne for ligne in data_iter]  # itérateur -> liste de tuples
     with conn.connection.cursor() as curseur:
         extras.execute_values(curseur, requete, lignes, page_size=1000)
     return len(lignes)

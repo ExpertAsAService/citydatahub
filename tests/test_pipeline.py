@@ -20,12 +20,21 @@ import pytest
 from modules.sources.module_api import erreur_api
 from modules.pipeline import execute
 
+
 def test_independance_source(stockage_factice):
     source_ok = MagicMock()
-    source_ok.recupere_data.return_value = iter([pd.DataFrame({
-        "date": ["2026-10-01"], "valeur": [1.0],
-        "ville": ["Paris"], "indicateur": ["temperature"],
-    })])
+    source_ok.recupere_data.return_value = iter(
+        [
+            pd.DataFrame(
+                {
+                    "date": ["2026-10-01"],
+                    "valeur": [1.0],
+                    "ville": ["Paris"],
+                    "indicateur": ["temperature"],
+                }
+            )
+        ]
+    )
     source_ko = MagicMock()
     source_ko.recupere_data.side_effect = erreur_api("Échec API")
 

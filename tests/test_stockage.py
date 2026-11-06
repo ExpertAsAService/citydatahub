@@ -17,6 +17,7 @@ import pytest
 
 from modules.stockage.stockage_postgres import erreur_stockage, stockage_postgres
 
+
 class TestStockage:
     def test_lot_non_conforme(self):
         stockage = stockage_postgres.__new__(stockage_postgres)
