@@ -7,18 +7,14 @@ Description :   Collecte les données et gére le processus
 
 Auteur : Eric Diologeant
 Date : 3 Novembre 2026
-Version : 0.1
+Version : 0.4
 Licence : MIT
 Usage :
 
 """
 
-from .sources.fournisseurs import FOURNISSEURS, creer_source
-from .sources.module_csv import source_csv
+from .sources import FOURNISSEURS, creer_source, source_csv, erreur_csv, erreur_api
 from .stockage.stockage_postgres import stockage_postgres, erreur_stockage
-from .sources.module_base import erreur_source
-from .sources.module_csv import erreur_csv
-from .sources.module_api import erreur_api
 
 
 def execute(sources: dict, stockage: stockage_postgres,

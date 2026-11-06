@@ -14,11 +14,15 @@ Usage :
 """
 
 import os
+from dotenv import load_dotenv
 
 import pandas as pd
 import psycopg2
 from psycopg2 import extras
 from sqlalchemy import create_engine
+
+# Charge les variables d'environnement depuis .env
+load_dotenv()
 
 
 class erreur_stockage(Exception):
@@ -28,17 +32,25 @@ class erreur_stockage(Exception):
 class stockage_postgres:
     """Insère des lots de mesures dans la table `mesures`."""
 
-    def __init__(self, base: str = "citydatahub", schema: str = "mesures"):
+    def __init__(self, base: str = None, schema: str = "mesures"):
         # Identifiants par variables d'ENVIRONNEMENT — jamais dans le code
         # (même règle que les futures clés d'API : configuration, pas code)
         self.base = os.environ.get("PGDATABASE", base)
-        self.utilisateur = os.environ.get("PGUSER", "citydatahub")
+        self.utilisateur = os.environ.get("PGUSER")
+        self.mot_de_passe = os.environ.get("PGPASSWORD")
         self.schema = schema
         self.insere_lignes = 0
         try:
-            self.moteur = create_engine(
-                f"postgresql+psycopg2://{self.utilisateur}@/{self.base}"
-            )
+            # Si pas de mot de passe, utiliser le socket Unix (authentification peer)
+            if self.mot_de_passe:
+                self.moteur = create_engine(
+                    f"postgresql+psycopg2://{self.utilisateur}:{self.mot_de_passe}@/{self.base}"
+                )
+            else:
+                # Connexion via socket Unix sans mot de passe (peer auth)
+                self.moteur = create_engine(
+                    f"postgresql+psycopg2://{self.utilisateur}@/{self.base}"
+                )
         except Exception as e:
             raise erreur_stockage(f"Connexion impossible : {self.base}") from e
 
@@ -67,7 +79,7 @@ def psycopg2_method_insert_par_lots(table, conn, keys, data_iter):
     """Méthode to_sql : INSERT multiplicité (execute_values) au lieu du
     row-by-row — des dizaines de fois plus rapide sur de gros volumes."""
     requete = (
-        f"INSERT INTO {table.table_name} ({', '.join(keys)}) VALUES %s"
+        f"INSERT INTO {table.name} ({', '.join(keys)}) VALUES %s"
     )
     lignes = [ligne for ligne in data_iter]          # itérateur -> liste de tuples
     with conn.connection.cursor() as curseur:
