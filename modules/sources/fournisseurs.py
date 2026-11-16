@@ -78,3 +78,10 @@ def creer_source(cle: str) -> "source_api":
         nom=conf["nom"],
         ville=conf["ville"],
     )
+
+COMBINAISONS = {
+    ("meteo", "Paris"): "meteo_paris",
+    ("meteo", "Lyon"): "meteo_lyon",
+    ("qualite_air", "Paris"): "qualite_air_paris",
+    ("velo", "Paris"): "velo_paris_republique",
+}

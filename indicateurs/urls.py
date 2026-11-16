@@ -21,5 +21,5 @@ from . import views
 urlpatterns = [
     path("", views.accueil, name="accueil"),
     path("indicateur/<str:indicateur>/", views.par_indicateur, name="par_indicateur"),
-#    path("collecte/", views.collecte, name="collecte"),   # configurateur
+    path("collecte/", views.collecte, name="collecte"),
 ]
