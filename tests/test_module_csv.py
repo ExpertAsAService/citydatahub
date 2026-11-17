@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : /test_module_csv.py
+Nom du script : test_module_csv.py
 Description : test
 
 Auteur : Eric Diologeant
 Date : 23 Octobre 2026
-Version : 0.1
+Version : 0.3
 Licence : MIT
 Usage : pytest tests/test_module_csv.py -v
 
