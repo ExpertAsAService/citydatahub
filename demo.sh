@@ -17,7 +17,7 @@ echo "── 3. Import (pipeline journalisé) ─────────"
 python -m modules.pipeline
 
 echo "── 4. Contenu de la base ───────────────────"
-psql -d citydatahub -c "SELECT ville, indicateur, count(*), round(avg(valeur),1) FROM mesures GROUP BY ville, indicateur ORDER BY 1, 2;"
+psql -d citydatahub -c "SELECT ville, indicateur, count(*), round(avg(valeur)::numeric, 1) FROM mesures GROUP BY ville, indicateur ORDER BY 1, 2;"
 
 echo "── 5. Tests ───────────────────────────────"
 pytest tests/ -q
