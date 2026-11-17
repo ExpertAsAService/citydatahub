@@ -3,7 +3,7 @@
 
 """
 Nom du script : api.py
-Description : Fournir les mesures 
+Description : Fournir les mesures
 
 Auteur : Eric Diologeant
 Date : 17 Novembre 2026
@@ -14,6 +14,7 @@ Licence : MIT
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.views.decorators.csrf import csrf_exempt
+
 
 @csrf_exempt
 @require_GET
@@ -27,9 +28,17 @@ def api_mesures(request, indicateur: str):
     try:
         jours = int(request.GET.get("jours", 7))
     except ValueError:
-        return JsonResponse({"erreur": "jours doit être un entier"}, status=400, json_dumps_params={"ensure_ascii": False},)
+        return JsonResponse(
+            {"erreur": "jours doit être un entier"},
+            status=400,
+            json_dumps_params={"ensure_ascii": False},
+        )
     if not 1 <= jours <= 365:
-        return JsonResponse({"erreur": "jours doit être entre 1 et 365"}, status=400, json_dumps_params={"ensure_ascii": False},)
+        return JsonResponse(
+            {"erreur": "jours doit être entre 1 et 365"},
+            status=400,
+            json_dumps_params={"ensure_ascii": False},
+        )
 
     debut = timezone.now() - timedelta(days=jours)
     requete = Mesure.objects.filter(indicateur=indicateur, date__gte=debut)
@@ -39,5 +48,6 @@ def api_mesures(request, indicateur: str):
         {"date": m.date.isoformat(), "ville": m.ville, "valeur": m.valeur}
         for m in requete.order_by("date")[:5000]
     ]
-    return JsonResponse({"indicateur": indicateur, "nb": len(donnees),
-                         "mesures": donnees})
+    return JsonResponse(
+        {"indicateur": indicateur, "nb": len(donnees), "mesures": donnees}
+    )

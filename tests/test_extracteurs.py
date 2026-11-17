@@ -19,6 +19,7 @@ from modules.sources.extracteurs import (
     extracteur_velo_paris,
 )
 
+
 class TestExtracteurOpenMeteo:
     def test_extraction_normale(self):
         reponse = {
@@ -41,9 +42,9 @@ class TestExtracteurOpenMeteo:
         assert len(extracteur_open_meteo(reponse)) == 2
 
     def test_reponse_vide(self):
-        assert extracteur_open_meteo(
-            {"hourly": {"time": [], "temperature_2m": []}}
-        ) == []
+        assert (
+            extracteur_open_meteo({"hourly": {"time": [], "temperature_2m": []}}) == []
+        )
 
 
 class TestExtracteurQualiteAir:
@@ -69,8 +70,8 @@ class TestExtracteurVeloParis:
             "results": [
                 {"duedate": "2026-10-01T10:00", "numbikesavailable": 12},
                 {"record_timestamp": "2026-10-01T10:05", "numbikesavailable": 5},
-                {"duedate": "2026-10-01T10:10"},   # pas de valeur -> écarté
-                {"numbikesavailable": 3},           # pas de date -> écarté
+                {"duedate": "2026-10-01T10:10"},  # pas de valeur -> écarté
+                {"numbikesavailable": 3},  # pas de date -> écarté
             ]
         }
         mesures = extracteur_velo_paris(reponse)

@@ -16,6 +16,7 @@ Usage : pytest tests/test_module_indicateur.py -v
 import pytest
 from modules.indicateur.module_indicateur import Indicateur
 
+
 class TestIndicateur:
     def test_creation_valide(self):
         i = Indicateur("temperature", "°C", "meteo", seuil_alerte=35.0)
@@ -28,7 +29,7 @@ class TestIndicateur:
     def test_en_alerte(self):
         i = Indicateur("temperature", "°C", "meteo", seuil_alerte=35.0)
         assert i.en_alerte(36) is True
-        assert i.en_alerte(35) is False        # strict — à figer par le test
+        assert i.en_alerte(35) is False  # strict — à figer par le test
         assert i.en_alerte(34.9) is False
 
     def test_sans_seuil_jamais_en_alerte(self):

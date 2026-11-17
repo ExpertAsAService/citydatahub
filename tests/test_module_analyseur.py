@@ -18,18 +18,23 @@ import pandas as pd
 import pytest
 from modules.analyseur.module_analyseur import AnalyseurDeDonnees
 
+
 @pytest.fixture
 def df_croissant():
-    return pd.DataFrame({
-        "date": pd.date_range("2026-11-01", periods=30, freq="D"),
-        "valeur": np.arange(30, dtype=float),
-    })
+    return pd.DataFrame(
+        {
+            "date": pd.date_range("2026-11-01", periods=30, freq="D"),
+            "valeur": np.arange(30, dtype=float),
+        }
+    )
+
 
 @pytest.fixture
 def df_avec_depassement(df_croissant):
     df = df_croissant.copy()
-    df.loc[0, "valeur"] = 100.0        # un pic isolé
+    df.loc[0, "valeur"] = 100.0  # un pic isolé
     return df
+
 
 class TestAnalyseur:
     def test_colonnes_manquantes_rejetees(self):
@@ -46,8 +51,9 @@ class TestAnalyseur:
         assert AnalyseurDeDonnees(df_croissant).detecter_tendance() > 0
 
     def test_tendance_stable(self):
-        df = pd.DataFrame({"date": pd.date_range("2026-11-01", periods=30),
-                           "valeur": [20.0] * 30})
+        df = pd.DataFrame(
+            {"date": pd.date_range("2026-11-01", periods=30), "valeur": [20.0] * 30}
+        )
         assert abs(AnalyseurDeDonnees(df).detecter_tendance()) < 1e-9
 
     def test_alertes_isole_le_pic(self, df_avec_depassement):

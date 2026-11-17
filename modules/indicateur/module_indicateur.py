@@ -15,13 +15,15 @@ Usage :
 
 from dataclasses import dataclass, field
 
+
 @dataclass
 class Indicateur:
     """Un indicateur urbain suivi (ex: température, pollution)."""
+
     nom: str
     unite: str
     categorie: str = "general"
-    seuil_alerte: float | None = None       # None = pas d'alerte
+    seuil_alerte: float | None = None  # None = pas d'alerte
 
     def __post_init__(self):
         if not self.nom or not self.nom.strip():

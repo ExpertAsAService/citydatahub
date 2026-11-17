@@ -16,17 +16,23 @@ Usage : pytest tests/test_api_json.py -v
 import pytest
 from django.test import Client
 
+
 @pytest.fixture
 def client():
     return Client()
+
 
 @pytest.mark.django_db
 class TestApiMesures:
     def test_api_rend_donnees(self, client):
         from indicateurs.models import Mesure
+
         Mesure.objects.create(
-            date="2026-11-17T10:00+00:00", valeur=18.5, ville="Paris",
-            indicateur="temperature", collecte_le="2026-11-17T10:00+00:00",
+            date="2026-11-17T10:00+00:00",
+            valeur=18.5,
+            ville="Paris",
+            indicateur="temperature",
+            collecte_le="2026-11-17T10:00+00:00",
         )
         reponse = client.get("/api/mesures/temperature?ville=Paris")
         assert reponse.status_code == 200

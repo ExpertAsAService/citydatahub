@@ -18,6 +18,7 @@ from .sources import FOURNISSEURS, creer_source, source_csv, erreur_csv, erreur_
 from .stockage.stockage_postgres import stockage_postgres, erreur_stockage
 from modules.journalisation import configure_journal
 
+
 def execute(
     sources: dict, stockage: stockage_postgres, taille_lot: int = 10_000
 ) -> dict:
@@ -33,15 +34,20 @@ def execute(
                 nouvelles += stockage.insere(lot)
         except (erreur_api, erreur_csv, erreur_stockage) as e:
             erreur = str(e)  # on journalise, on NE LÈVE PAS
-            journal.warning(
-                "source en panne | source=%s | erreur=%s", cle, erreur)
+            journal.warning("source en panne | source=%s | erreur=%s", cle, erreur)
         journal.info(
             "collecte | source=%s | collectees=%s | nouvelles=%s",
-            cle, collectees, nouvelles)
+            cle,
+            collectees,
+            nouvelles,
+        )
         bilan[cle] = {
-            "collectees": collectees, "nouvelles": nouvelles, "erreur": erreur,
+            "collectees": collectees,
+            "nouvelles": nouvelles,
+            "erreur": erreur,
         }
     return bilan
+
 
 if __name__ == "__main__":
     journal = configure_journal()
@@ -52,7 +58,11 @@ if __name__ == "__main__":
     for cle, etat in bilan.items():
         journal.info(
             "bilan | source=%s | collectees=%s | nouvelles=%s | erreur=%s",
-            cle, etat["collectees"], etat["nouvelles"], etat["erreur"])
+            cle,
+            etat["collectees"],
+            etat["nouvelles"],
+            etat["erreur"],
+        )
 
     echecs = [cle for cle, r in bilan.items() if r["erreur"]]
     sys.exit(1 if echecs else 0)

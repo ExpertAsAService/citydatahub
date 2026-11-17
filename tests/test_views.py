@@ -31,9 +31,13 @@ class TestPages:
     def test_accueil_ajoute_indicateur(self, client):
         """Le résumé de l'accueil affiche les indicateurs de la base."""
         from indicateurs.models import Mesure
+
         Mesure.objects.create(
-            date="2026-11-17T10:00+00:00", valeur=18.5, ville="Paris",
-            indicateur="temperature", collecte_le="2026-11-17T10:00+00:00",
+            date="2026-11-17T10:00+00:00",
+            valeur=18.5,
+            ville="Paris",
+            indicateur="temperature",
+            collecte_le="2026-11-17T10:00+00:00",
         )
         reponse = client.get("/")
         assert reponse.status_code == 200
@@ -41,9 +45,13 @@ class TestPages:
 
     def test_par_indicateur_affiche_ville(self, client):
         from indicateurs.models import Mesure
+
         Mesure.objects.create(
-            date="2026-11-17T10:00+00:00", valeur=18.5, ville="Paris",
-            indicateur="temperature", collecte_le="2026-11-17T10:00+00:00",
+            date="2026-11-17T10:00+00:00",
+            valeur=18.5,
+            ville="Paris",
+            indicateur="temperature",
+            collecte_le="2026-11-17T10:00+00:00",
         )
         reponse = client.get("/indicateur/temperature/")
         assert reponse.status_code == 200
@@ -74,9 +82,7 @@ class TestConfigurateur:
             return source
 
         monkeypatch.setattr(module_fournisseurs, "creer_source", faux_creer_source)
-        reponse = client.post(
-            "/collecte/", {"combinaison": f"{source_nom}:{ville}"}
-        )
+        reponse = client.post("/collecte/", {"combinaison": f"{source_nom}:{ville}"})
         assert reponse.status_code == 200
-        assert b"Erreur" in reponse.content     # le bloc rouge du template
-        assert b"simul" in reponse.content      # l'erreur simulée rendue
+        assert b"Erreur" in reponse.content  # le bloc rouge du template
+        assert b"simul" in reponse.content  # l'erreur simulée rendue

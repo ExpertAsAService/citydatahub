@@ -16,14 +16,15 @@ Usage :
 import logging
 import sys
 
+
 def configure_journal(niveau: str = "INFO") -> logging.Logger:
     journal = logging.getLogger("citydatahub")
-    if journal.handlers:            # déjà configuré (imports multiples)
+    if journal.handlers:  # déjà configuré (imports multiples)
         return journal
     journal.setLevel(niveau)
     sortie = logging.StreamHandler(sys.stdout)
-    sortie.setFormatter(logging.Formatter(
-        "%(asctime)s | %(levelname)-7s | %(name)s | %(message)s"
-    ))
+    sortie.setFormatter(
+        logging.Formatter("%(asctime)s | %(levelname)-7s | %(name)s | %(message)s")
+    )
     journal.addHandler(sortie)
     return journal

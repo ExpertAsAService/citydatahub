@@ -52,4 +52,3 @@ def test_independance_source(stockage_factice):
     assert bilan["ko"]["collectees"] == 0
     assert bilan["ko"]["nouvelles"] == 0
     assert "Échec API" in str(bilan["ko"]["erreur"])
-
