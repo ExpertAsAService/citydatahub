@@ -76,7 +76,7 @@ WSGI_APPLICATION = "citydatahub_web.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "citydatahub",       # la base créée en S3
+        "NAME": "citydatahub",  # la base créée en S3
         # pas de USER/PASSWORD : psycopg2 prend l'utilisateur OS,
         # authentification peer de NixOS
         "OPTIONS": {"connect_timeout": 3},

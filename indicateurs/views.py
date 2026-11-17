@@ -22,9 +22,8 @@ from .models import Mesure
 def accueil(request):
     """Page d'accueil : les indicateurs disponibles et le nombre de mesures."""
     resume = (
-        Mesure.objects.values("indicateur")       # GROUP BY indicateur (SQL!)
-        .annotate(nb=models.Count("id"),
-                  villes=models.Count("ville", distinct=True))
+        Mesure.objects.values("indicateur")  # GROUP BY indicateur (SQL!)
+        .annotate(nb=models.Count("id"), villes=models.Count("ville", distinct=True))
         .order_by("indicateur")
     )
     return render(request, "indicateurs/accueil.html", {"resume": resume})
@@ -38,11 +37,15 @@ def par_indicateur(request, indicateur: str):
         .order_by("date")
         .values("date", "valeur", "ville")
     )
-    return render(request, "indicateurs/detail.html", {
-        "indicateur": indicateur,
-        "mesures": dernieres,
-        "series": list(series),
-    })
+    return render(
+        request,
+        "indicateurs/detail.html",
+        {
+            "indicateur": indicateur,
+            "mesures": dernieres,
+            "series": list(series),
+        },
+    )
 
 
 def collecte(request):
@@ -57,16 +60,25 @@ def collecte(request):
     if request.method == "POST" and formulaire.is_valid():
         source_nom, ville = formulaire.cleaned_data["combinaison"].split(":", 1)
         try:
-            cle = COMBINAISONS[(source_nom, ville)]      # clé réelle du registre
+            cle = COMBINAISONS[(source_nom, ville)]  # clé réelle du registre
             source = creer_source(cle)
             stockage = stockage_postgres()
             lignes = sum(stockage.insere(lot) for lot in source.recupere_data())
-            message = (f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom})."
-                if lignes else "Aucune nouvelle mesure : données déjà à jour.")
+            message = (
+                f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom})."
+                if lignes
+                else "Aucune nouvelle mesure : données déjà à jour."
+            )
         except (erreur_api, erreur_stockage) as e:
-            erreur = str(e)        # panne journalisée à l'écran, pas de crash
+            erreur = str(e)  # panne journalisée à l'écran, pas de crash
         except KeyError:
             erreur = "Cette source n'est pas disponible."
-    return render(request, "indicateurs/collecte.html", {
-        "form": formulaire, "message": message, "erreur": erreur,
-    })
+    return render(
+        request,
+        "indicateurs/collecte.html",
+        {
+            "form": formulaire,
+            "message": message,
+            "erreur": erreur,
+        },
+    )

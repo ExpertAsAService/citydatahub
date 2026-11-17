@@ -168,8 +168,32 @@
   services.postgresql = {
   enable = true;
   package = pkgs.postgresql_18;
-  ensureDatabases = [ "citydatahub" ];
-  ensureUsers = [ { name = "ericd";  } ];
+  ensureDatabases = [ "citydatahub" "citydatahub_test" ];
+  ensureUsers = [ { name = "ericd"; } ];
+  };
+
+  systemd.services.citydatahub-db-owner = {
+    description = "CityDataHub : propriété des bases à ericd (idempotent)";
+    after = [ "postgresql.service" ];
+    wants = [ "postgresql.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = { Type = "oneshot"; User = "postgres"; RemainAfterExit = true; };
+    script = ''
+      ${pkgs.postgresql}/bin/psql -c "ALTER DATABASE citydatahub      OWNER TO ericd"
+      ${pkgs.postgresql}/bin/psql -c "ALTER DATABASE citydatahub_test OWNER TO ericd"
+    '';
+  };
+
+  systemd.services.citydatahub-schema = {
+    description = "CityDataHub : applique schema.sql aux bases (idempotent)";
+    after = [ "postgresql.service" "citydatahub-db-owner.service" ];   # ← l'ordre
+    wants = [ "postgresql.service" "citydatahub-db-owner.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = { Type = "oneshot"; User = "ericd"; RemainAfterExit = true; };
+    script = ''
+      ${pkgs.postgresql}/bin/psql -d citydatahub      -f /home/ericd/citydatahub/sql/schema.sql
+      ${pkgs.postgresql}/bin/psql -d citydatahub_test -f /home/ericd/citydatahub/sql/schema.sql
+    '';
   };
 
   # Divers but important

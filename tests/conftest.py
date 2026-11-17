@@ -65,13 +65,16 @@ def stockage_factice(tmp_path):
 
     return stockage_stub()
 
+
 import pytest
 from django.db import connection
+
 
 @pytest.fixture(autouse=True)
 def table_mesures(db):
     with connection.cursor() as curseur:
-        curseur.execute("""
+        curseur.execute(
+            """
             CREATE TABLE IF NOT EXISTS mesures (
                 id SERIAL PRIMARY KEY,
                 date TIMESTAMPTZ,
@@ -80,5 +83,5 @@ def table_mesures(db):
                 indicateur TEXT,
                 collecte_le TIMESTAMPTZ
             );
-        """)
-
+        """
+        )

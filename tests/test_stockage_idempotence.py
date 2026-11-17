@@ -14,6 +14,7 @@ Licence : MIT
 Usage : pytest tests/test_stockage_idempotence.py -v
 """
 
+import pytest
 import pandas as pd
 
 from modules.stockage.stockage_postgres import stockage_postgres
@@ -23,27 +24,39 @@ from modules.stockage.stockage_postgres import stockage_postgres
 def lot_factice():
     """Un lot au format commun : 2 mesures, dates fixes et déterministes.
     Nettoie la base de test avant (répétabilité) et après (propreté)."""
-    lot = pd.DataFrame([
-        {"date": "2026-12-01T00:00:00+00:00", "valeur": 18.5,
-         "ville": "Testville", "indicateur": "temperature"},
-        {"date": "2026-12-02T00:00:00+00:00", "valeur": 19.0,
-         "ville": "Testville", "indicateur": "temperature"},
-    ])
+    lot = pd.DataFrame(
+        [
+            {
+                "date": "2026-12-01T00:00:00+00:00",
+                "valeur": 18.5,
+                "ville": "Testville",
+                "indicateur": "temperature",
+            },
+            {
+                "date": "2026-12-02T00:00:00+00:00",
+                "valeur": 19.0,
+                "ville": "Testville",
+                "indicateur": "temperature",
+            },
+        ]
+    )
     stockage = stockage_postgres(base="citydatahub_test")
     with stockage.moteur.connect() as conn:
         conn.connection.cursor().execute(
-            "DELETE FROM mesures WHERE ville = 'Testville'")
+            "DELETE FROM mesures WHERE ville = 'Testville'"
+        )
         conn.connection.commit()
     yield lot
     with stockage.moteur.connect() as conn:
         conn.connection.cursor().execute(
-            "DELETE FROM mesures WHERE ville = 'Testville'")
+            "DELETE FROM mesures WHERE ville = 'Testville'"
+        )
         conn.connection.commit()
 
 
 def test_insere_deux_fois_est_idempotent(lot_factice):
     """1re passe : tout inséré. 2e passe : 0 nouvelle, aucune exception."""
-    stockage = stockage_postgres(base="citydatahub_test")   # base de test !
+    stockage = stockage_postgres(base="citydatahub_test")  # base de test !
     premiere = stockage.insere(lot_factice)
     deuxieme = stockage.insere(lot_factice)
     assert deuxieme == 0

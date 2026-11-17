@@ -33,4 +33,6 @@ class Mesure(models.Model):
         ordering = ["-date"]
 
     def __str__(self) -> str:
-        return f"{self.ville} · {self.indicateur} = {self.valeur} ({self.date:%d/%m %Hh})"
+        return (
+            f"{self.ville} · {self.indicateur} = {self.valeur} ({self.date:%d/%m %Hh})"
+        )

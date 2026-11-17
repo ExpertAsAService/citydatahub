@@ -20,8 +20,11 @@ from modules.sources.fournisseurs import COMBINAISONS
 
 class FormulaireCollecte(forms.Form):
     """Un seul champ : le couple (source, ville), issu du registre réel."""
+
     combinaison = forms.ChoiceField(
-        choices=[(f"{source}:{ville}", f"{source.replace('_', ' ')} — {ville}")
-                 for (source, ville) in COMBINAISONS],
+        choices=[
+            (f"{source}:{ville}", f"{source.replace('_', ' ')} — {ville}")
+            for (source, ville) in COMBINAISONS
+        ],
         label="Source à collecter",
     )

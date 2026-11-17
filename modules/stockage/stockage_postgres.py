@@ -3,11 +3,11 @@
 
 """
 Nom du script : stockage_postgres.py
-Description :   Gère l'imterface  avec la base de données
+Description :   Gère l'interface avec la base de données
 
 Auteur : Eric Diologeant
 Date : 3 Novembre 2026
-Version : 0.1
+Version : 0.5
 Licence : MIT
 Usage :
 
@@ -19,7 +19,6 @@ from dotenv import load_dotenv
 import pandas as pd
 import psycopg2
 from psycopg2 import extras
-from psycopg2.extras import execute_batch 
 from sqlalchemy import create_engine
 
 # Charge les variables d'environnement depuis .env
@@ -82,9 +81,9 @@ def psycopg2_method_insert_par_lots(table, conn, keys, data_iter):
         "ON CONFLICT (ville, indicateur, date) DO NOTHING "
         "RETURNING date"
     )
-    lignes = list(data_iter) 
+    lignes = list(data_iter)
     with conn.connection.cursor() as curseur:
         resultats = extras.execute_values(
             curseur, requete, lignes, page_size=1000, fetch=True
         )
-    return len(resultats)   
+    return len(resultats)
