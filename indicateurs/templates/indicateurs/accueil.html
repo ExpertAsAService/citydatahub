@@ -1,0 +1,14 @@
+{% extends "indicateurs/base.html" %}
+{% block contenu %}
+    <h1>Indicateurs disponibles</h1>
+    <table>
+        <tr><th>Indicateur</th><th>Mesures</th><th>Villes</th></tr>
+        {% for ligne in resume %}
+        <tr>
+            <td><a href="{% url 'par_indicateur' ligne.indicateur %}">{{ ligne.indicateur }}</a></td>
+            <td>{{ ligne.nb }}</td>
+            <td>{{ ligne.villes }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

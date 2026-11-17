@@ -1,13 +1,16 @@
 /* 
 Nom du script : schema.sql
-Description : Création du schéma de la table des mesures
+Description : Création du schéma de la table des mesures, ajout des informùations pour créer la base de test
 
 Auteur : Eric Diologeant
 Date : 02 Novembre 2026
-Version : 1.0
+Version : 1.1
 Licence : MIT
 Usage : psql -d citydatahub -f sql/schema.sql
+Usage : psql -d citydatahub_test -f sql/schema.sql
 Usage docs : psql -d citydatahub -c "\d+ mesures"
+Usage docs : psql -d citydatahub_test -c "\d+ mesures"
+
 
 */
 

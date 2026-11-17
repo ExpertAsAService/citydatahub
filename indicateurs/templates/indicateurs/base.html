@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>CityDataHub</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'accueil' %}">CityDataHub</a> — indicateurs urbains
+    </nav>
+    <main>
+        {% block contenu %}{% endblock %}
+    </main>
+</body>
+</html>
