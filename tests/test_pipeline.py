@@ -42,6 +42,13 @@ def test_independance_source(stockage_factice):
         {"ok": lambda: source_ok, "ko": lambda: source_ko},
         stockage_factice,
     )
-    assert bilan["ok"]["lignes"] == 1
+
+    # La source saine : collectée, stockée, aucune erreur
+    assert bilan["ok"]["collectees"] == 1
+    assert bilan["ok"]["nouvelles"] == 1
     assert bilan["ok"]["erreur"] is None
-    assert "Échec" in bilan["ko"]["erreur"]
+
+    # La source en panne : rien collecté, l'erreur est tracée, PAS levée
+    assert bilan["ko"]["collectees"] == 0
+    assert bilan["ko"]["nouvelles"] == 0
+    assert "Échec API" in str(bilan["ko"]["erreur"])

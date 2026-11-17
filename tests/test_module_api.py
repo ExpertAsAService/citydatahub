@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Nom du script : /test_module_api.py
-Description : test
+Nom du script : test_module_api.py
+Description : test unitaires de source_api — réseau simulé (mock), aucun Django
 
 Auteur : Eric Diologeant
 Date : 31 Octobre 2026
-Version : 0.1
+Version : 0.3
 Licence : MIT
 Usage : pytest tests/test_module_api.py -v
 
@@ -18,8 +18,8 @@ from unittest.mock import MagicMock
 import pytest
 import requests
 
-from modules.sources.module_api import erreur_api, source_api
 from modules.sources.extracteurs import extracteur_open_meteo
+from modules.sources.module_api import erreur_api, source_api
 
 REPONSE_METEO = {
     "hourly": {
@@ -31,7 +31,7 @@ REPONSE_METEO = {
 
 class TestSourceApi:
     def test_extraction(self, monkeypatch):
-        """Simule une réponse HTTP 200 et vérifie la normalisation."""
+        """HTTP 200 simulé : normalisation + format commun."""
         source = source_api(
             "https://exemple.fr/api",
             extracteur=extracteur_open_meteo,
@@ -46,30 +46,29 @@ class TestSourceApi:
         lot = next(source.recupere_data())
         assert len(lot) == 2
         assert lot.iloc[0]["valeur"] == 18.5
-        assert (lot["ville"] == "Paris").all()  # ville injectée par la source
-        assert (lot["indicateur"] == "temperature").all()  # sémantique, sans suffixe
+        assert (lot["ville"] == "Paris").all()
+        assert (lot["indicateur"] == "temperature").all()
 
     def test_api_indisponible(self, monkeypatch):
-        """Simule une panne réseau persistante -> erreur_api."""
-        source = source_api(
-            "https://exemple.fr/api", extracteur=extracteur_open_meteo, tentatives=2
-        )
+        """Panne réseau persistante -> erreur_api après les tentatives."""
 
         def panne(*args, **kwargs):
             raise requests.ConnectionError("pas de réseau")
 
+        source = source_api(
+            "https://exemple.fr/api",
+            extracteur=extracteur_open_meteo,
+            tentatives=2,
+        )
         monkeypatch.setattr(requests, "get", panne)
-
         with pytest.raises(erreur_api, match="tentatives"):
             next(source.recupere_data())
 
     def test_donnees_vides(self, monkeypatch):
-        """Extracteur rend une liste VIDE -> erreur métier, sans toucher au réseau."""
+        """Extracteur rend une liste VIDE -> erreur métier, sans réseau."""
         source = source_api(
             "https://exemple.fr/api", extracteur=lambda r: [], nom="vide"
         )
-        # on simule la RÉPONSE, pas le transport : ce test cible la
-        # branche « aucune donnée extraite » de recupere_data
         monkeypatch.setattr(source, "requete_api", lambda: {"hourly": {}})
         with pytest.raises(erreur_api, match="Aucune donnée"):
             next(source.recupere_data())
