@@ -1,18 +1,19 @@
-/* 
+/*
 Nom du script : schema.sql
-Description : Création du schéma de la table des mesures, ajout des informùations pour créer la base de test
+Description : Schéma CityDataHub — table des mesures + extension
+              multi-tables (categories, indicateurs, sources, alertes)
+              Script idempotent : rejouable à l'identique sur les deux bases.
 
 Auteur : Eric Diologeant
-Date : 02 Novembre 2026
-Version : 1.1
+Date : 20 Novembre 2026
+Version : 1.2
 Licence : MIT
-Usage : psql -d citydatahub -f sql/schema.sql
-Usage : psql -d citydatahub_test -f sql/schema.sql
-Usage docs : psql -d citydatahub -c "\d+ mesures"
-Usage docs : psql -d citydatahub_test -c "\d+ mesures"
-
-
+Usage production : psql -d citydatahub -f sql/schema.sql
+Usage test        : psql -d citydatahub_test -f sql/schema.sql
+Usage docs        : psql -d citydatahub -c "\d+ mesures"
+                    psql -d citydatahub -c "\d+ indicateurs"
 */
+
 
 CREATE TABLE IF NOT EXISTS mesures (
     id          BIGSERIAL PRIMARY KEY,
@@ -20,19 +21,15 @@ CREATE TABLE IF NOT EXISTS mesures (
     valeur      DOUBLE PRECISION NOT NULL,
     ville       TEXT          NOT NULL,
     indicateur  TEXT          NOT NULL,
-    -- traçabilité : quand cette ligne a-t-elle été insérée dans la base ?
     collecte_le TIMESTAMPTZ   NOT NULL DEFAULT now()
 );
 
--- L'index qui sert TOUS les cas d'usage :
 CREATE INDEX IF NOT EXISTS idx_mesures_recherche
     ON mesures (ville, indicateur, date);
 
--- Un contrôle d'intégrité métier : pas de doublon mesure/ville/date.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mesures_unique
     ON mesures (ville, indicateur, date);
 
--- ── Documentation de la base (visible via \d+ mesures) ──────────────
 COMMENT ON TABLE mesures IS
     'Mesures au format commun CityDataHub : {date, valeur, ville, indicateur}. '
     'Une ligne = une mesure d''un indicateur, pour une ville, à un instant.';
@@ -46,23 +43,95 @@ COMMENT ON COLUMN mesures.date IS
     'fuseau demandé à la lecture — réconcilie les conventions des APIs).';
 
 COMMENT ON COLUMN mesures.valeur IS
-    'Valeur de la mesure en float64 (DOUBLE PRECISION) — alignée sur pandas, ';
+    'Valeur de la mesure en float64 (DOUBLE PRECISION) — alignée sur pandas, '
+    'types homogènes du DataFrame jusqu''à la base.';
 
 COMMENT ON COLUMN mesures.ville IS
-    'Ville de la mesure, texte libre volontairement (pas de référentiel : ';
+    'Ville de la mesure, texte libre volontairement (pas de référentiel : '
+    'décision initiale, le format commun garantit la cohérence à la source).';
 
 COMMENT ON COLUMN mesures.indicateur IS
-    'Sémantique de la mesure : temperature, pollution_pm25, ';
+    'Sémantique de la mesure : temperature, pollution_pm25, '
+    'velos_disponibles — jointé par nom au référentiel indicateurs.';
 
 COMMENT ON COLUMN mesures.collecte_le IS
-    'Horodatage de l''INSERTION de la ligne (DEFAULT now()) — traçabilité ';
+    'Horodatage de l''INSERTION de la ligne (DEFAULT now()) — traçabilité '
+    'gratuite au niveau stockage, sans polluer le format commun des sources.';
 
 COMMENT ON INDEX idx_mesures_recherche IS
-    'Index de lecture : sert les requêtes WHERE ville/indicateur ';
+    'Index de lecture : sert les requêtes WHERE ville/indicateur '
+    'triées par date — toutes les pages web et l''API en profitent.';
 
 COMMENT ON INDEX idx_mesures_unique IS
     'Règle métier exécutoire : une mesure (ville, indicateur, date) est '
     'unique par nature — un re-run du pipeline ne peut pas dupliquer.';
 
+
+CREATE TABLE IF NOT EXISTS categories (
+    id   SERIAL PRIMARY KEY,
+    nom  TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS indicateurs (
+    id            SERIAL PRIMARY KEY,
+    nom           TEXT NOT NULL UNIQUE,
+    unite         TEXT NOT NULL,
+    categorie_id  INT NOT NULL REFERENCES categories(id),
+    seuil_alerte  DOUBLE PRECISION 
+);
+
+CREATE TABLE IF NOT EXISTS sources (
+    id          SERIAL PRIMARY KEY,
+    nom         TEXT NOT NULL UNIQUE,
+    type        TEXT NOT NULL, 
+    description TEXT DEFAULT '',
+    url         TEXT DEFAULT '' 
+);
+
+CREATE TABLE IF NOT EXISTS alertes (
+    id            BIGSERIAL PRIMARY KEY,
+    mesure_id     BIGINT NOT NULL REFERENCES mesures(id),
+    indicateur_id INT NOT NULL REFERENCES indicateurs(id),
+    seuil         DOUBLE PRECISION NOT NULL,
+    valeur        DOUBLE PRECISION NOT NULL,
+    date_mesure   TIMESTAMPTZ NOT NULL,
+    UNIQUE (mesure_id)
+);
+
+COMMENT ON TABLE categories IS
+    'Référentiel des catégories d''indicateurs (cahier des charges) : '
+    'environnement, mobilite, equipements.';
+
+COMMENT ON TABLE indicateurs IS
+    'Référentiel des indicateurs : nom (jointé par nom à mesures.indicateur), '
+    'unité, catégorie, seuil d''alerte (NULL = jamais en alerte). '
+    'Dataclass Indicateur qui est la base de la conception de cette table.';
+
+COMMENT ON TABLE sources IS
+    'Référentiel des sources persisté en base (miroir du registre '
+    'fournisseurs.py) — nom = clé du registre, type api|csv, url.';
+
+COMMENT ON TABLE alertes IS
+    'Dépassements de seuil détectés : une ligne par mesure en dépassement. '
+    'UNIQUE (mesure_id) : rejouer la détection ne duplique pas les alertes.';
+
 COMMENT ON SCHEMA public IS
-    'CityDataHub : sources CSV/API -> format commun -> PostgreSQL.';
+    'CityDataHub : sources CSV/API -> format commun -> PostgreSQL '
+    '(mesures  : référentiels + alertes).';
+
+
+INSERT INTO categories (nom) VALUES ('environnement'), ('mobilite'), ('equipements')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO indicateurs (nom, unite, categorie_id, seuil_alerte)
+SELECT DISTINCT m.indicateur,
+       's.u.',
+       (SELECT id FROM categories WHERE nom = 'environnement'),
+       NULL::DOUBLE PRECISION
+FROM mesures m
+ON CONFLICT (nom) DO NOTHING;
+
+UPDATE indicateurs
+SET categorie_id = (SELECT id FROM categories WHERE nom = 'mobilite')
+WHERE nom LIKE '%velo%'
+  AND categorie_id = (SELECT id FROM categories WHERE nom = 'environnement');
