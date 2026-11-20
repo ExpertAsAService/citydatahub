@@ -46,6 +46,14 @@ def execute(
             "nouvelles": nouvelles,
             "erreur": erreur,
         }
+    try:
+        alertes_creees = stockage.detecte_alertes()
+        journal.info("alertes | creees=%s", alertes_creees)
+    except erreur_stockage as e:
+        # la détection ne doit jamais casser la collecte : on journalise
+        alertes_creees = None
+        journal.warning("détection d'alertes en panne | erreur=%s", e)
+
     return bilan
 
 

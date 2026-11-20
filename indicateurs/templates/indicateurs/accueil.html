@@ -1,6 +1,25 @@
 {% extends "indicateurs/base.html" %}
 {% block contenu %}
     <h1>Indicateurs disponibles</h1>
+
+    {% if total_alertes %}
+    <p class="badge-alerte">
+        {{ total_alertes }} alerte{{ total_alertes|pluralize }} en base —
+        dernières :
+    </p>
+    <ul>
+        {% for a in alertes_recentes %}
+        <li>
+            {{ a.mesure.ville }} — {{ a.indicateur.nom }} :
+            {{ a.valeur }} &gt; seuil {{ a.seuil }}
+            le {{ a.date_mesure|date:"d/m/Y H\hi" }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="badge-ok">Aucune alerte : seuils respectés ou non réglés.</p>
+    {% endif %}
+
     <table>
         <tr><th>Indicateur</th><th>Mesures</th><th>Villes</th></tr>
         {% for ligne in resume %}

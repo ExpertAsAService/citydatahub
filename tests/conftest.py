@@ -3,17 +3,20 @@
 
 """
 Nom du script : conftest.py
-Description : test
+Description : Fixtures communes des tests — fichiers CSV temporaires,
+              stub de stockage sans base, et schéma de test joué depuis
+              sql/schema.sql (référence unique, idempotent).
 
 Auteur : Eric Diologeant
-Date : 23 Octobre 2026
-Version : 0.1
+Date : 20 Novembre 2026
+Version : 0.2
 Licence : MIT
-Usage :
-
 """
 
+from pathlib import Path
+
 import pytest
+from django.db import connection
 
 
 CSV_VALIDE = """date,valeur,indicateur,ville
@@ -63,25 +66,21 @@ def stockage_factice(tmp_path):
             self.insere_lignes += len(lot)
             return len(lot)
 
+        def detecte_alertes(self):
+            # le stub n'a pas de base : la détection rend zéro, sans IO
+            return 0
+
     return stockage_stub()
 
 
-import pytest
-from django.db import connection
-
-
 @pytest.fixture(autouse=True)
-def table_mesures(db):
+def schema_complet(db):
+    """Crée le schéma de test en jouant sql/schema.sql — LA référence unique.
+
+    Le script est idempotent (IF NOT EXISTS, ON CONFLICT DO NOTHING) :
+    rejouable à chaque session de test, il suivra les évolutions S6/S7
+    sans que ce fichier n'ait à changer.
+    """
+    schema = Path(__file__).resolve().parent.parent / "sql" / "schema.sql"
     with connection.cursor() as curseur:
-        curseur.execute(
-            """
-            CREATE TABLE IF NOT EXISTS mesures (
-                id SERIAL PRIMARY KEY,
-                date TIMESTAMPTZ,
-                valeur DOUBLE PRECISION,
-                ville TEXT,
-                indicateur TEXT,
-                collecte_le TIMESTAMPTZ
-            );
-        """
-        )
+        curseur.execute(schema.read_text())

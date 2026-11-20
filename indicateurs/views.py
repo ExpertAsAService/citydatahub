@@ -9,7 +9,7 @@ Description : Vues Django de l'application indicateurs.
 
 Auteur : Eric Diologeant
 Date : 16 Novembre 2026
-Version : 0.8
+Version : 0.9
 Licence : MIT
 """
 
@@ -19,14 +19,30 @@ from django.shortcuts import render
 from .models import Mesure
 
 
+from .models import Alerte, IndicateurRef, Mesure
+
+
 def accueil(request):
-    """Page d'accueil : les indicateurs disponibles et le nombre de mesures."""
+    """Page d'accueil : indicateurs disponibles, mesures, badge d'alertes."""
     resume = (
         Mesure.objects.values("indicateur")  # GROUP BY indicateur (SQL!)
         .annotate(nb=models.Count("id"), villes=models.Count("ville", distinct=True))
         .order_by("indicateur")
     )
-    return render(request, "indicateurs/accueil.html", {"resume": resume})
+    alertes_recentes = (
+        Alerte.objects
+        .select_related("indicateur", "mesure")   # pas de N+1 sur les relations
+        .order_by("-date_mesure")[:5]             # les 5 dernières pour l'écran
+    )
+    return render(
+        request,
+        "indicateurs/accueil.html",
+        {
+            "resume": resume,
+            "total_alertes": Alerte.objects.count(),
+            "alertes_recentes": alertes_recentes,
+        },
+    )
 
 
 def par_indicateur(request, indicateur: str):
@@ -49,7 +65,7 @@ def par_indicateur(request, indicateur: str):
 
 
 def collecte(request):
-    """Configurateur : déclenche une collecte à la demande (pipeline S2-S3)."""
+    """Configurateur : déclenche une collecte à la demande."""
     from modules.sources.fournisseurs import COMBINAISONS, creer_source
     from modules.stockage.stockage_postgres import stockage_postgres, erreur_stockage
     from modules.sources.module_api import erreur_api

@@ -6,14 +6,16 @@ Nom du script : stockage_postgres.py
 Description :   Gère l'interface avec la base de données
 
 Auteur : Eric Diologeant
-Date : 3 Novembre 2026
-Version : 0.5
+Date : 20 Novembre 2026
+Version : 0.6
 Licence : MIT
 Usage :
 
 """
 
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 import pandas as pd
@@ -73,6 +75,24 @@ class stockage_postgres:
             return int(lignes_ecrites)
         except Exception as e:
             raise erreur_stockage(f"Échec d'insertion : {e}") from e
+
+    def detecte_alertes(self) -> int:
+        """Joue sql/alertes.sql (référence unique) après un import.
+
+        Rend le nombre d'alertes CRÉÉES (0 si seuils non réglés ou déjà
+        détectées) — le fichier reste LA référence, ce code l'exécute.
+        Idempotent par construction (UNIQUE(mesure_id) + ON CONFLICT).
+        """
+        chemin = Path(__file__).resolve().parents[2] / "sql" / "alertes.sql"
+        try:
+            with self.moteur.connect() as connexion:
+                with connexion.connection.cursor() as curseur:
+                    curseur.execute(chemin.read_text())
+                    creees = curseur.rowcount
+                connexion.commit()
+            return int(creees)
+        except Exception as e:
+            raise erreur_stockage(f"Échec de la détection d'alertes : {e}") from e
 
 
 def psycopg2_method_insert_par_lots(table, conn, keys, data_iter):
