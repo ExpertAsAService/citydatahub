@@ -3,10 +3,12 @@ Nom du script : schema.sql
 Description : Schéma CityDataHub — table des mesures + extension
               multi-tables (categories, indicateurs, sources, alertes)
               Script idempotent : rejouable à l'identique sur les deux bases.
+              Rôle unique (S6) : STRUCTURE seule — les données de référence
+              vivent dans referentiels.sql.
 
 Auteur : Eric Diologeant
-Date : 20 Novembre 2026
-Version : 1.2
+Date : 21 Novembre 2026
+Version : 1.3
 Licence : MIT
 Usage production : psql -d citydatahub -f sql/schema.sql
 Usage test        : psql -d citydatahub_test -f sql/schema.sql
@@ -98,14 +100,20 @@ CREATE TABLE IF NOT EXISTS alertes (
     UNIQUE (mesure_id)
 );
 
+-- Jeu de données initial : => referentiels.sql pose
+-- le référentiel (categories meteo/qualite_air/mobilite, indicateurs,
+-- sources miroir de fournisseurs.py). Le référentiel déduit des
+-- mesures, unités 's.u.', catégorie 'environnement' par défaut — a été
+-- abrogée : le schéma crée, referentiels alimente.
+
 COMMENT ON TABLE categories IS
-    'Référentiel des catégories d''indicateurs (cahier des charges) : '
-    'environnement, mobilite, equipements.';
+    'Référentiel des catégories d''indicateurs (posées par referentiels.sql) : '
+    'meteo, qualite_air, mobilite.';
 
 COMMENT ON TABLE indicateurs IS
     'Référentiel des indicateurs : nom (jointé par nom à mesures.indicateur), '
-    'unité, catégorie, seuil d''alerte (NULL = jamais en alerte). '
-    'Dataclass Indicateur qui est la base de la conception de cette table.';
+    'unité, catégorie, seuil d''alerte (NULL = jamais en alerte) — '
+    'posé par referentiels.sql, le seuil se règle à l''écran (admin).';
 
 COMMENT ON TABLE sources IS
     'Référentiel des sources persisté en base (miroir du registre '
@@ -117,24 +125,7 @@ COMMENT ON TABLE alertes IS
 
 COMMENT ON SCHEMA public IS
     'CityDataHub : sources CSV/API -> format commun -> PostgreSQL '
-    '(mesures  : référentiels + alertes).';
-
-
-INSERT INTO categories (nom) VALUES ('environnement'), ('mobilite'), ('equipements')
-ON CONFLICT DO NOTHING;
-
-INSERT INTO indicateurs (nom, unite, categorie_id, seuil_alerte)
-SELECT DISTINCT m.indicateur,
-       's.u.',
-       (SELECT id FROM categories WHERE nom = 'environnement'),
-       NULL::DOUBLE PRECISION
-FROM mesures m
-ON CONFLICT (nom) DO NOTHING;
-
-UPDATE indicateurs
-SET categorie_id = (SELECT id FROM categories WHERE nom = 'mobilite')
-WHERE nom LIKE '%velo%'
-  AND categorie_id = (SELECT id FROM categories WHERE nom = 'environnement');
+    '(mesures + référentiels + alertes).';
 
 
 CREATE TABLE IF NOT EXISTS imports (
@@ -148,4 +139,4 @@ CREATE TABLE IF NOT EXISTS imports (
     erreur         TEXT,
     date_import    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-COMMENT ON TABLE imports IS 'Historique des imports CSV, un ligne par tentative.';
+COMMENT ON TABLE imports IS 'Historique des imports CSV, une ligne par tentative.';
