@@ -26,7 +26,8 @@ TRUNCATE alertes, mesures, imports, indicateurs, categories, sources
 
 COMMIT;
 
--- 3. python manage.py runserver
+-- 3. Run WebServer
+-- python manage.py runserver 0.0.0.0:8000 &
 
 -- 4. Modification du seuil
 -- /admin/indicateurs/indicateurref/ 
