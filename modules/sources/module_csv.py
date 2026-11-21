@@ -53,13 +53,12 @@ class source_csv(source_data):
         if self.chemin.stat().st_size == 0:
             raise erreur_csv(f"Fichier de taille 0 : {self.chemin}")
 
-        # Vérifie si c'est bien un csv
+        # Vérifie si c'est bien un csv — with : le fichier est fermé même en cas d'erreur
         try:
-            df = pd.read_csv(
+            with pd.read_csv(
                 self.chemin, chunksize=1, nrows=1, sep=r"[,;\t]", engine="python"
-            )
-            next(iter(df))
-            df.close()
+            ) as lecteur:
+                next(iter(lecteur))
         except StopIteration:
             raise erreur_csv(
                 f"Contenu vide ou séparateur non détecté : {self.chemin}"
@@ -72,11 +71,14 @@ class source_csv(source_data):
             raise erreur_csv(f"Format non supporté : {self.chemin}") from None
 
     def recupere_data(self) -> Iterator[pd.DataFrame]:
-        # Génère les données du CSV lot par lot
-        for lot in pd.read_csv(
+        # Génère les données du CSV lot par lot.
+        # with : le fd est fermé quand le générateur est fermé, même si la
+        # lecture est interrompue avant la fin (break, exception, GC).
+        with pd.read_csv(
             self.chemin, chunksize=self.taille_lot, sep=r"[,;\t]", engine="python"
-        ):
-            yield self.normalise_data(lot)
+        ) as lecteur:
+            for lot in lecteur:
+                yield self.normalise_data(lot)
 
     def normalise_data(self, lot: pd.DataFrame) -> pd.DataFrame:
         # Mets en forme le csv en fonction du FORMAT, vérifie le cohérence des valeurs et supprime les enregistrements incorrects.

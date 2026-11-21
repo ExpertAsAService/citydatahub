@@ -75,8 +75,6 @@ def collecte(request):
     from modules.sources.module_api import erreur_api
     from modules.stockage.stockage_postgres import stockage_postgres, erreur_stockage
 
-    from .forms import FormulaireCollecte
-
     formulaire = FormulaireCollecte(request.POST or None)
     message, erreur = None, None
     if request.method == "POST" and formulaire.is_valid():
@@ -86,11 +84,14 @@ def collecte(request):
             source = creer_source(cle)
             stockage = stockage_postgres()
             lignes = sum(stockage.insere(lot) for lot in source.recupere_data())
-            message = (
-                f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom})."
-                if lignes
-                else "Aucune nouvelle mesure : données déjà à jour."
-            )
+            alertes = stockage.detecte_alertes()   # S3 suit la collecte, comme le pipeline
+            if lignes:
+                message = (
+                    f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom}) "
+                    f"— {alertes} nouvelle(s) alerte(s)."
+                )
+            else:
+                message = "Aucune nouvelle mesure : données déjà à jour."
         except (erreur_api, erreur_stockage) as e:
             erreur = str(e)  # panne affichée à l'écran, pas de crash
         except KeyError:
