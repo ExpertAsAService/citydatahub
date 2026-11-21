@@ -135,3 +135,17 @@ UPDATE indicateurs
 SET categorie_id = (SELECT id FROM categories WHERE nom = 'mobilite')
 WHERE nom LIKE '%velo%'
   AND categorie_id = (SELECT id FROM categories WHERE nom = 'environnement');
+
+
+CREATE TABLE IF NOT EXISTS imports (
+    id             BIGSERIAL PRIMARY KEY,
+    fichier        TEXT NOT NULL,
+    utilisateur    TEXT,
+    lignes_lues    INTEGER DEFAULT 0,
+    lignes_inserees INTEGER DEFAULT 0,
+    lignes_rejetees INTEGER DEFAULT 0,
+    statut         TEXT NOT NULL,          -- 'succes' | 'echec' |
+    erreur         TEXT,
+    date_import    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE imports IS 'Historique des imports CSV, un ligne par tentative.';

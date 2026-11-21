@@ -108,3 +108,19 @@ class Alerte(models.Model):
 
     def __str__(self) -> str:
         return f"{self.valeur} > {self.seuil} ({self.date_mesure:%d/%m %Hh})"
+
+class Import(models.Model):
+    """Historique des imports CSV lancés depuis le site (monitoring)."""
+    fichier = models.TextField()
+    utilisateur = models.TextField(null=True)
+    lignes_lues = models.IntegerField(default=0)
+    lignes_inserees = models.IntegerField(default=0)
+    lignes_rejetees = models.IntegerField(default=0)
+    statut = models.TextField()
+    erreur = models.TextField(null=True)
+    date_import = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "imports"
+        ordering = ["-date_import"]

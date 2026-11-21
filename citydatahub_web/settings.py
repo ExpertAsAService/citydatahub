@@ -76,7 +76,7 @@ WSGI_APPLICATION = "citydatahub_web.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "citydatahub",  # la base créée en S3
+        "NAME": "citydatahub",  # la base de l'application
         # pas de USER/PASSWORD : psycopg2 prend l'utilisateur OS,
         # authentification peer de NixOS
         "OPTIONS": {"connect_timeout": 3},
@@ -118,6 +118,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
+LOGIN_URL = "/admin/login/"
 STATIC_URL = "static/"
 
 

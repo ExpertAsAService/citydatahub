@@ -20,6 +20,10 @@
     <p class="badge-ok">Aucune alerte : seuils respectés ou non réglés.</p>
     {% endif %}
 
+    {% if user.is_authenticated %}
+    <p><a href="{% url 'import_csv' %}">Importer un CSV</a></p>
+    {% endif %}
+
     <table>
         <tr><th>Indicateur</th><th>Mesures</th><th>Villes</th></tr>
         {% for ligne in resume %}

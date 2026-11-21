@@ -79,17 +79,16 @@ class stockage_postgres:
     def detecte_alertes(self) -> int:
         """Joue sql/alertes.sql (référence unique) après un import.
 
-        Rend le nombre d'alertes CRÉÉES (0 si seuils non réglés ou déjà
-        détectées) — le fichier reste LA référence, ce code l'exécute.
-        Idempotent par construction (UNIQUE(mesure_id) + ON CONFLICT).
+        Rend le nombre d'alertes CRÉÉES. Idempotent : UNIQUE(mesure_id)
+        + ON CONFLICT DO NOTHING — le rejeu ne peut pas dupliquer.
         """
         chemin = Path(__file__).resolve().parents[2] / "sql" / "alertes.sql"
         try:
-            with self.moteur.connect() as connexion:
-                with connexion.connection.cursor() as curseur:
+            with self.moteur.raw_connection() as connexion:   # connexion DBAPI (psycopg2)
+                with connexion.cursor() as curseur:
                     curseur.execute(chemin.read_text())
                     creees = curseur.rowcount
-                connexion.commit()
+                connexion.commit()   # le commit psycopg2, au bon étage cette fois
             return int(creees)
         except Exception as e:
             raise erreur_stockage(f"Échec de la détection d'alertes : {e}") from e

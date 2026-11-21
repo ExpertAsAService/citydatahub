@@ -15,7 +15,7 @@ Licence : MIT
 
 from django.contrib import admin
 
-from .models import Alerte, Categorie, IndicateurRef, Mesure, Source
+from .models import Alerte, Categorie, Import, IndicateurRef, Mesure, Source
 
 
 @admin.register(IndicateurRef)
@@ -55,3 +55,13 @@ class AlerteAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # une alerte se détecte, elle ne se déclare pas à la main
+
+
+@admin.register(Import)
+class ImportAdmin(admin.ModelAdmin):
+    """Monitoring des imports : un essai = une ligne, lecture seule."""
+    list_display = ("date_import", "fichier", "utilisateur", "statut", "lignes_lues", "lignes_inserees", "lignes_rejetees")
+    list_filter = ("statut", "utilisateur",)
+
+    def has_add_permission(self, request):
+        return False # un import se fait via le formulaire, pas à la main

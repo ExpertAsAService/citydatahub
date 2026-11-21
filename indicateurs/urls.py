@@ -21,4 +21,5 @@ urlpatterns = [
     path("indicateur/<str:indicateur>/", views.par_indicateur, name="par_indicateur"),
     path("collecte/", views.collecte, name="collecte"),
     path("api/mesures/<str:indicateur>", api.api_mesures, name="api_mesures"),
+    path("import/", views.import_csv, name="import_csv"),
 ]

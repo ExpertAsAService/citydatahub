@@ -3,14 +3,13 @@
 
 """
 Nom du script : test_views.py
-Description : Tests des vues Django : pages, formulaire, pannes gérées.
+Description : Tests des vues Django : pages, configurateur, import CSV.
 
 Auteur : Eric Diologeant
-Date : 5 Novembre 2026
-Version : 0.8
+Date : 21 Novembre 2026
+Version : 0.9
 Licence : MIT
 Usage : pytest tests/test_views.py -v
-
 """
 
 from unittest.mock import MagicMock
@@ -86,3 +85,53 @@ class TestConfigurateur:
         assert reponse.status_code == 200
         assert b"Erreur" in reponse.content  # le bloc rouge du template
         assert b"simul" in reponse.content  # l'erreur simulée rendue
+
+
+class TestImportCSV:
+    """Scénario RNCP : upload, feedback, refus des fichiers corrompus.
+    Le stockage est stubbé (règle S3 : jamais de vraie connexion en test) —
+    la vue l'importe au moment de l'appel, le stub le remplace au bon niveau."""
+
+    def _branche_stockage_stub(self, monkeypatch):
+        class stockage_import_stub:
+            def __init__(self):
+                self.insere_lignes = 0
+
+            def insere(self, lot):
+                self.insere_lignes += len(lot)
+                return len(lot)
+
+            def detecte_alertes(self):
+                return 2  # nombre factice : le contrat est le compteur du message
+
+        monkeypatch.setattr(
+            "modules.stockage.stockage_postgres.stockage_postgres",
+            stockage_import_stub,
+        )
+
+    def test_anonyme_redirige_vers_login(self, client):
+        reponse = client.get("/import/")
+        assert reponse.status_code == 302 and "/admin/login/" in reponse["Location"]
+
+    def test_import_valide_compte_et_historise(
+        self, client, admin_user, csv_valide, monkeypatch
+    ):
+        self._branche_stockage_stub(monkeypatch)
+        client.force_login(admin_user)
+        with open(csv_valide, "rb") as f:
+            reponse = client.post("/import/", {"fichier": f})
+        assert b"mesures import" in reponse.content.lower()
+        from indicateurs.models import Import
+        ligne = Import.objects.latest("date_import")
+        assert ligne.statut == "succes" and ligne.lignes_inserees >= 1
+
+    def test_csv_corrompu_feedback_erreur(
+        self, client, admin_user, csv_mauvais_format, monkeypatch
+    ):
+        self._branche_stockage_stub(monkeypatch)
+        client.force_login(admin_user)
+        with open(csv_mauvais_format, "rb") as f:
+            reponse = client.post("/import/", {"fichier": f})
+        assert reponse.status_code == 200
+        from indicateurs.models import Import
+        assert Import.objects.latest("date_import").statut == "echec"
