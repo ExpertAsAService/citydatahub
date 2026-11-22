@@ -3,9 +3,11 @@
 # demo.sh — démonstration end-to-end reproductible
 # Rejoue installation -> référentiels -> seuil -> données -> import CSV -> vérification -> tests -> web
 # Auteur : Eric Diologeant — Novembre 2026
+# Usage : bash scripts/demo.sh
+#         (cible codée en dur : citydatahub_test — jamais la production)
 
 set -e
-cd "$(dirname "$0")"
+cd "$(dirname "$(readlink -f "$0")")/.."
 
 echo "── 1. Base : schéma ───────────────────────"
 psql -d citydatahub -f sql/schema.sql

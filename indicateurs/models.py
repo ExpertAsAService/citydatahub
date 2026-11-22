@@ -3,9 +3,9 @@
 
 """
 Nom du script : models.py
-Description : Miroirs ORM des 5 tables CityDataHub (mesures S3 + référentiels
-              S6) — sq/schema.sql reste LA référence ; Django ne migre rien
-              (managed=False) depuis la S4.
+Description : Miroirs ORM des 5 tables CityDataHub (mesures + référentiels)
+             — sq/schema.sql reste LA référence ; Django ne migre rien
+              (managed=False).
 
 Auteur : Eric Diologeant
 Date : 20 Novembre 2026
@@ -52,7 +52,7 @@ class Categorie(models.Model):
 
 
 class IndicateurRef(models.Model):
-    """Référentiel des indicateurs — la dataclass Indicateur (S2) en table."""
+    """Référentiel des indicateurs — la dataclass Indicateur en table."""
 
     id = models.BigAutoField(primary_key=True)
     nom = models.TextField()

@@ -8,6 +8,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      /home/ericd/citydatahub/nixos/citydatahub.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -127,7 +128,7 @@
   pytest
   ]))
   # Package base de données PostgreSQL
-  postgresql
+  postgresql_18
   pgadmin4
   ];
 
@@ -179,8 +180,8 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = { Type = "oneshot"; User = "postgres"; RemainAfterExit = true; };
     script = ''
-      ${pkgs.postgresql}/bin/psql -c "ALTER DATABASE citydatahub      OWNER TO ericd"
-      ${pkgs.postgresql}/bin/psql -c "ALTER DATABASE citydatahub_test OWNER TO ericd"
+      ${pkgs.postgresql_18}/bin/psql -c "ALTER DATABASE citydatahub      OWNER TO ericd"
+      ${pkgs.postgresql_18}/bin/psql -c "ALTER DATABASE citydatahub_test OWNER TO ericd"
     '';
   };
 
@@ -191,8 +192,8 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = { Type = "oneshot"; User = "ericd"; RemainAfterExit = true; };
     script = ''
-      ${pkgs.postgresql}/bin/psql -d citydatahub      -f /home/ericd/citydatahub/sql/schema.sql
-      ${pkgs.postgresql}/bin/psql -d citydatahub_test -f /home/ericd/citydatahub/sql/schema.sql
+      ${pkgs.postgresql_18}/bin/psql -d citydatahub      -f /home/ericd/citydatahub/sql/schema.sql
+      ${pkgs.postgresql_18}/bin/psql -d citydatahub_test -f /home/ericd/citydatahub/sql/schema.sql
     '';
   };
 

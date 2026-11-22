@@ -37,7 +37,7 @@ class stockage_postgres:
     def __init__(self, base: str = None, schema: str = "mesures"):
         # Identifiants par variables d'ENVIRONNEMENT — jamais dans le code
         # (même règle que les futures clés d'API : configuration, pas code)
-        self.base = os.environ.get("PGDATABASE", base)
+        self.base = base if base is not None else os.environ.get("PGDATABASE", "citydatahub")
         self.utilisateur = os.environ.get("PGUSER")
         self.mot_de_passe = os.environ.get("PGPASSWORD")
         self.schema = schema

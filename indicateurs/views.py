@@ -5,7 +5,7 @@
 Nom du script : views.py
 Description : Vues Django de l'application indicateurs.
               accueil / par_indicateur : lecture de la base.
-              collecte : configurateur qui déclenche le pipeline S2-S3.
+              collecte : configurateur qui déclenche le pipeline.
               import_csv : upload d'un CSV (cahier des charges RNCP) —
               le site appelle le pipeline, il ne le réécrit pas.
 
@@ -88,7 +88,7 @@ def collecte(request):
             lignes = sum(stockage.insere(lot) for lot in source.recupere_data())
             alertes = (
                 stockage.detecte_alertes()
-            )  # S3 suit la collecte, comme le pipeline
+            )  # Suit la collecte, comme le pipeline
             if lignes:
                 message = (
                     f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom}) "

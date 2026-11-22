@@ -78,7 +78,7 @@ def schema_complet(db):
     """Crée le schéma de test en jouant sql/schema.sql — LA référence unique.
 
     Le script est idempotent (IF NOT EXISTS, ON CONFLICT DO NOTHING) :
-    rejouable à chaque session de test, il suivra les évolutions S6/S7
+    rejouable à chaque session de test, il suivra les évolutions 
     sans que ce fichier n'ait à changer.
     """
     schema = Path(__file__).resolve().parent.parent / "sql" / "schema.sql"

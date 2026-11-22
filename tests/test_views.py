@@ -89,7 +89,7 @@ class TestConfigurateur:
 
 class TestImportCSV:
     """Scénario RNCP : upload, feedback, refus des fichiers corrompus.
-    Le stockage est stubbé (règle S3 : jamais de vraie connexion en test) —
+    Le stockage est stubbé (règle : jamais de vraie connexion en test) —
     la vue l'importe au moment de l'appel, le stub le remplace au bon niveau."""
 
     def _branche_stockage_stub(self, monkeypatch):

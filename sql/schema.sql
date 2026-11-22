@@ -3,7 +3,7 @@ Nom du script : schema.sql
 Description : Schéma CityDataHub — table des mesures + extension
               multi-tables (categories, indicateurs, sources, alertes)
               Script idempotent : rejouable à l'identique sur les deux bases.
-              Rôle unique (S6) : STRUCTURE seule — les données de référence
+              Rôle unique : STRUCTURE seule — les données de référence
               vivent dans referentiels.sql.
 
 Auteur : Eric Diologeant
