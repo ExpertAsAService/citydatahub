@@ -84,11 +84,11 @@ class stockage_postgres:
         """
         chemin = Path(__file__).resolve().parents[2] / "sql" / "alertes.sql"
         try:
-            with self.moteur.raw_connection() as connexion:   # connexion DBAPI (psycopg2)
+            with self.moteur.raw_connection() as connexion:  # connexion DBAPI (psycopg2)
                 with connexion.cursor() as curseur:
                     curseur.execute(chemin.read_text())
                     creees = curseur.rowcount
-                connexion.commit()   # le commit psycopg2, au bon étage cette fois
+                connexion.commit()  # le commit psycopg2, au bon étage cette fois
             return int(creees)
         except Exception as e:
             raise erreur_stockage(f"Échec de la détection d'alertes : {e}") from e

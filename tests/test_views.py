@@ -122,6 +122,7 @@ class TestImportCSV:
             reponse = client.post("/import/", {"fichier": f})
         assert b"mesures import" in reponse.content.lower()
         from indicateurs.models import Import
+
         ligne = Import.objects.latest("date_import")
         assert ligne.statut == "succes" and ligne.lignes_inserees >= 1
 
@@ -134,4 +135,5 @@ class TestImportCSV:
             reponse = client.post("/import/", {"fichier": f})
         assert reponse.status_code == 200
         from indicateurs.models import Import
+
         assert Import.objects.latest("date_import").statut == "echec"

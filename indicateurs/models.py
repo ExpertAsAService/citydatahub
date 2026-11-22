@@ -31,7 +31,9 @@ class Mesure(models.Model):
         db_table = "mesures"
 
     def __str__(self) -> str:
-        return f"{self.ville} — {self.indicateur} : {self.valeur} ({self.date:%d/%m %Hh})"
+        return (
+            f"{self.ville} — {self.indicateur} : {self.valeur} ({self.date:%d/%m %Hh})"
+        )
 
 
 class Categorie(models.Model):
@@ -109,8 +111,10 @@ class Alerte(models.Model):
     def __str__(self) -> str:
         return f"{self.valeur} > {self.seuil} ({self.date_mesure:%d/%m %Hh})"
 
+
 class Import(models.Model):
     """Historique des imports CSV lancés depuis le site (monitoring)."""
+
     fichier = models.TextField()
     utilisateur = models.TextField(null=True)
     lignes_lues = models.IntegerField(default=0)

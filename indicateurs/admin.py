@@ -21,6 +21,7 @@ from .models import Alerte, Categorie, Import, IndicateurRef, Mesure, Source
 @admin.register(IndicateurRef)
 class IndicateurRefAdmin(admin.ModelAdmin):
     """Le cœur administratif : on règle les seuils, le reste se lit."""
+
     list_display = ("nom", "unite", "categorie", "seuil_alerte")
     list_filter = ("categorie",)
     search_fields = ("nom",)
@@ -39,6 +40,7 @@ class SourceAdmin(admin.ModelAdmin):
 @admin.register(Mesure)
 class MesureAdmin(admin.ModelAdmin):
     """Lecture seule : le flux vient du pipeline, jamais de l'admin."""
+
     list_display = ("date", "ville", "indicateur", "valeur")
     list_filter = ("indicateur", "ville")
     date_hierarchy = "date"
@@ -50,6 +52,7 @@ class MesureAdmin(admin.ModelAdmin):
 @admin.register(Alerte)
 class AlerteAdmin(admin.ModelAdmin):
     """Lecture seule : les lignes naissent de la détection SQL."""
+
     list_display = ("date_mesure", "indicateur", "valeur", "seuil")
     list_filter = ("indicateur",)
 
@@ -60,8 +63,20 @@ class AlerteAdmin(admin.ModelAdmin):
 @admin.register(Import)
 class ImportAdmin(admin.ModelAdmin):
     """Monitoring des imports : un essai = une ligne, lecture seule."""
-    list_display = ("date_import", "fichier", "utilisateur", "statut", "lignes_lues", "lignes_inserees", "lignes_rejetees")
-    list_filter = ("statut", "utilisateur",)
+
+    list_display = (
+        "date_import",
+        "fichier",
+        "utilisateur",
+        "statut",
+        "lignes_lues",
+        "lignes_inserees",
+        "lignes_rejetees",
+    )
+    list_filter = (
+        "statut",
+        "utilisateur",
+    )
 
     def has_add_permission(self, request):
-        return False # un import se fait via le formulaire, pas à la main
+        return False  # un import se fait via le formulaire, pas à la main

@@ -29,6 +29,8 @@ class FormulaireCollecte(forms.Form):
         label="Source à collecter",
     )
 
+
 class FormulaireImport(forms.Form):
     """Un seul champ : le fichier CSV au format commun (4 colonnes)."""
+
     fichier = forms.FileField(label="Fichier CSV (date, valeur, indicateur, ville)")

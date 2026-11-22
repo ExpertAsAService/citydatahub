@@ -11,7 +11,7 @@ Description : Vues Django de l'application indicateurs.
 
 Auteur : Eric Diologeant
 Date : 21 Novembre 2026
-Version : 
+Version :
 Licence : MIT
 """
 
@@ -34,11 +34,13 @@ def accueil(request):
         .annotate(nb=models.Count("id"), villes=models.Count("ville", distinct=True))
         .order_by("indicateur")
     )
-    alertes_recentes = (
-        Alerte.objects
-        .select_related("indicateur", "mesure")   # pas de N+1 sur les relations
-        .order_by("-date_mesure")[:5]             # les 5 dernières pour l'écran
-    )
+    alertes_recentes = Alerte.objects.select_related(
+        "indicateur", "mesure"
+    ).order_by(  # pas de N+1 sur les relations
+        "-date_mesure"
+    )[
+        :5
+    ]  # les 5 dernières pour l'écran
     return render(
         request,
         "indicateurs/accueil.html",
@@ -84,7 +86,9 @@ def collecte(request):
             source = creer_source(cle)
             stockage = stockage_postgres()
             lignes = sum(stockage.insere(lot) for lot in source.recupere_data())
-            alertes = stockage.detecte_alertes()   # S3 suit la collecte, comme le pipeline
+            alertes = (
+                stockage.detecte_alertes()
+            )  # S3 suit la collecte, comme le pipeline
             if lignes:
                 message = (
                     f"{lignes} nouvelles mesures collectées pour {ville} ({source_nom}) "
@@ -123,14 +127,12 @@ def import_csv(request):
         # Django streame déjà les gros fichiers vers un temporaire :
         # on l'y écrit proprement, source_csv lira par lots (mémoire constante).
         try:
-            with tempfile.NamedTemporaryFile(
-                suffix=".csv", delete=False
-            ) as temporaire:
+            with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as temporaire:
                 for morceau in fichier.chunks():
                     temporaire.write(morceau)
                 chemin = temporaire.name
             try:
-                source = source_csv(chemin)      # fail-fast : structure vérifiée là
+                source = source_csv(chemin)  # fail-fast : structure vérifiée là
                 stockage = stockage_postgres()
                 for lot in source.recupere_data():
                     lues += len(lot)
@@ -142,9 +144,9 @@ def import_csv(request):
                     f"{alertes} nouvelle(s) alerte(s)."
                 )
             finally:
-                os.remove(chemin)                # pas de fichier qui traîne
+                os.remove(chemin)  # pas de fichier qui traîne
         except (erreur_csv, erreur_stockage) as e:
-            statut, erreur = "echec", str(e)     # feedback, jamais de crash
+            statut, erreur = "echec", str(e)  # feedback, jamais de crash
         Import.objects.create(  # monitoring : un essai = une ligne, même en échec
             fichier=fichier.name,
             utilisateur=request.user.username,
