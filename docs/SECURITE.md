@@ -108,7 +108,7 @@ dans le journal systemd (`journalctl -u citydatahub-pipeline`,
 erreurs. La journalisation est portée par `modules/journalisation.py`,
 utilisée par tous les modules.
 
-## 10. Limites connues et pistes (honnêteté de soutenance)
+## 10. Limites connues et pistes d'amélioration
 
 - La rotation à 7 jours reste locale : une copie hors site (chiffrée)
   serait l'étape suivante.

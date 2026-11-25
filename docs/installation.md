@@ -67,7 +67,7 @@ sudo nixos-rebuild switch
 
 `nixos-rebuild switch` installe et configure en une commande :
 
-- **PostgreSQL 18** (version unique, partout — le piège 17/18 est résolu par choix global), bases `citydatahub` et `citydatahub_test` créées, propriétaire `ericd` ;
+- **PostgreSQL 18** (version unique alignée partout, un seul alias de paquet dans la configuration), bases `citydatahub` et `citydatahub_test` créées, propriétaire `ericd` ;
 - **Les services ordonnés** appliquent le schéma (schéma idempotent) ;
 - **Les deux timers systemd** : pipeline de collecte (04:00) et sauvegarde `pg_dump` (03:15), `Persistent = true` — la machine peut dormir, la nuit est rattrapée ;
 - **Le pare-feu** : port 8000 ouvert uniquement (le LAN voit le site, rien d'autre).

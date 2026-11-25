@@ -87,7 +87,7 @@ psql -d citydatahub_test -f sql/reinitialisation.sql
 ```
 `BEGIN` + `TRUNCATE` des six tables + référentiels + `COMMIT`, `ON_ERROR_STOP`. Jamais sur la production : le `psql -d <base>` explicite est le garde-fou.
 
-## 8. Dérouler la démonstration de soutenance
+## 8. Dérouler la démonstration du système
 
 ```bash
 bash scripts/demo.sh                 # le produit de bout en bout
