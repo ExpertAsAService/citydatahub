@@ -1,0 +1,60 @@
+@startuml
+skinparam componentStyle rectangle
+
+title Diagramme de deploiement - CityDataHub\n(NixOS cdh2026)
+
+node "Machine NixOS (cdh2026)" {
+
+  artifact "backups/" as backups {
+    citydatahub-YYYY-MM-JJ.dump (7 jours)
+  }
+
+  package "Projet ~/citydatahub" {
+    [modules (sources, stockage, pipeline, analyseur)] as modules
+    [venv Python + pandas/numpy] as venv
+    [venv/bin/python] as python
+    [Serveur Django :8000] as django
+    folder "scripts/" as scripts {
+      sauvegarde.sh
+      verif_sauvegarde.sh
+      restore_sauvegarde.sh
+    }
+  }
+
+  database "PostgreSQL 18" as pg {
+    base "citydatahub" (production)
+    base "citydatahub_test" (CI, *_test)
+  }
+
+  package "systemd" {
+    [timer citydatahub-pipeline\n(collecte 04:00, Persistent)] as t1
+    [service citydatahub-pipeline\n(oneshot)] as s1
+    [timer citydatahub-sauvegarde\n(03:15, Persistent)] as t2
+    [service citydatahub-sauvegarde\n(oneshot)] as s2
+  }
+
+  t1 ..> s1 : declenche
+  t2 ..> s2 : declenche
+  s1 ..> python
+  s2 ..> scripts
+  python ..> modules
+  modules ..> pg : insere / alerte
+  django ..> pg : lit
+  scripts ..> pg : pg_dump / pg_restore
+  scripts ..> backups : ecrit / lit
+  venv ..> python
+}
+
+cloud "Internet - APIs publiques" {
+  [Open-Meteo meteo] as api1
+  [Open-Meteo air] as api2
+  [Velib Paris] as api3
+}
+
+actor "Navigateur (LAN)" as nav
+
+modules ..> api1 : HTTPS
+modules ..> api2 : HTTPS
+modules ..> api3 : HTTPS
+nav ..> django : HTTP :8000
+@enduml

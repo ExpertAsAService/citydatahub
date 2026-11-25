@@ -1,0 +1,31 @@
+@startuml
+skinparam sequenceMessageAlign center
+
+title Diagramme de sequence - Import CSV\n(Utilisateur vers Django vers PostgreSQL)
+
+actor "Administrateur (navigateur)" as U
+participant "Django\nviews.import_csv" as DJ
+participant "FormulaireImport\n(forms.py)" as FO
+participant "stockage_postgres\n(insere / detecte_alertes)" as ST
+database "PostgreSQL\n(citydatahub)" as PG
+
+U -> DJ : GET /import/
+DJ --> U : formulaire + demande d'authentification
+U -> DJ : POST /import/ (fichier CSV)
+DJ -> FO : valider le fichier
+FO --> DJ : formulaire valide / erreur de structure
+alt fichier invalide
+    DJ --> U : message d'erreur (structure attendue)
+end
+DJ -> ST : insere( lot )
+ST -> PG : INSERT ... ON CONFLICT DO NOTHING\n(par lots de 10 000)
+PG --> ST : lignes nouvelles (= compteur)
+ST --> DJ : nombre de mesures reellement inserees
+DJ -> ST : detecte_alertes()
+ST -> PG : SELECT mesures JOIN indicateurs\nWHERE valeur > seuil_alerte
+PG --> ST : mesures en depassement
+ST -> PG : INSERT alertes ON CONFLICT (mesure_id) DO NOTHING
+PG --> ST : alertes creees
+ST --> DJ : bilan (nouvelles, alertes)
+DJ --> U : page de confirmation\n(mesures nouvelles, alertes detectees)
+@enduml

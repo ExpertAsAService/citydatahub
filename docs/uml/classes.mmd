@@ -1,0 +1,80 @@
+classDiagram
+    direction TB
+
+    class source_data {
+        <<abstraite>>
+        +recupere_data()*
+        +normalise_data()*
+    }
+    class source_api {
+        +requete_api() reponse
+        +extraire_data() mesures
+        +recupere_data() lots
+    }
+    class source_csv {
+        +recupere_data() lots
+        +normalise_data() lot
+    }
+    class erreur_api {
+        <<exception>>
+    }
+    class erreur_csv {
+        <<exception>>
+    }
+    class stockage_postgres {
+        +insere(lot) nouvelles
+        +detecte_alertes() alertes
+    }
+    class erreur_stockage {
+        <<exception>>
+    }
+    class AnalyseurDeDonnees {
+        +resume() dict
+        +moyenne_mobile(fenetre) Serie
+        +detecter_tendance(fenetre) float
+        +rapport_alerte(seuil) dict
+    }
+    class Indicateur {
+        +en_alerte(valeur) bool
+    }
+
+    source_data <|-- source_api
+    source_data <|-- source_csv
+    source_api ..> erreur_api : leve
+    source_csv ..> erreur_csv : leve
+    stockage_postgres ..> erreur_stockage : leve
+
+    class Mesure {
+        +ville
+        +indicateur
+        +date_mesure
+        +valeur
+    }
+    class Categorie {
+        +nom
+    }
+    class IndicateurRef {
+        +nom
+        +unite
+        +seuil_alerte
+        +categorie FK
+    }
+    class Source {
+        +nom
+    }
+    class Alerte {
+        +valeur
+        +seuil
+        +date_mesure
+        +mesure FK
+        +indicateur FK
+    }
+    class Import {
+        <<journal>>
+    }
+
+    IndicateurRef "N" --> "1" Categorie : categorie FK
+    Alerte "N" --> "1" Mesure : mesure FK
+    Alerte "N" --> "1" IndicateurRef : indicateur FK
+    Mesure ..> IndicateurRef : lien logique par nom
+    Mesure ..> Source : lien logique provenance

@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph nixos["Machine NixOS (cdh2026)"]
+        subgraph systemd["systemd"]
+            T1["timer citydatahub-pipeline<br/>(collecte 04:00, Persistent)"]
+            S1["service citydatahub-pipeline"]
+            T2["timer citydatahub-sauvegarde<br/>(03:15, Persistent)"]
+            S2["service citydatahub-sauvegarde"]
+        end
+        subgraph projet["Projet ~/citydatahub"]
+            PY["venv/bin/python"]
+            MOD["modules (sources, stockage,<br/>pipeline, analyseur)"]
+            DJ["Serveur Django :8000"]
+            SCR["scripts/ : sauvegarde.sh<br/>verif_sauvegarde.sh<br/>restore_sauvegarde.sh"]
+        end
+        PG[("PostgreSQL 18<br/>citydatahub + citydatahub_test")]
+        BK[("backups/<br/>dumps 7 jours")]
+    end
+
+    subgraph internet["Internet - APIs publiques"]
+        A1["Open-Meteo meteo"]
+        A2["Open-Meteo air"]
+        A3["Velib Paris"]
+    end
+
+    NAV(["Navigateur (LAN)"])
+
+    T1 --> S1
+    T2 --> S2
+    S1 --> PY
+    S2 --> SCR
+    PY --> MOD
+    MOD --> PG
+    MOD --> A1
+    MOD --> A2
+    MOD --> A3
+    DJ --> PG
+    SCR --> PG
+    SCR --> BK
+    NAV --> DJ

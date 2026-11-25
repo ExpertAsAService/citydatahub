@@ -1,0 +1,21 @@
+flowchart LR
+    Utilisateur(["Utilisateur (visiteur)"])
+    Admin(["Administrateur"])
+    Timer(["Timer systemd (horloge)"])
+
+    subgraph system["Système CityDataHub"]
+        UC1([Consulter les mesures])
+        UC2([Consulter les alertes])
+        UC3(["Importer un fichier CSV (authentifie)"])
+        UC4([Exécuter la collecte API])
+        UC5([Exécuter la sauvegarde pg_dump])
+        UC6([Restaurer une sauvegarde])
+    end
+
+    Utilisateur --> UC1
+    Utilisateur --> UC2
+    Admin --> UC3
+    Admin --> UC4
+    Admin --> UC6
+    Timer --> UC4
+    Timer --> UC5

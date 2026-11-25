@@ -1,0 +1,96 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+title Diagramme de classes - CityDataHub\n(moteur Python + interface Django)
+
+package "modules (moteur de collecte)" {
+
+  abstract class source_data {
+    +recupere_data()*
+    +normalise_data( lot )*
+  }
+  class source_api {
+    +requete_api() : reponse
+    +extraire_data( reponse ) : mesures
+    +recupere_data() : lots
+    +normalise_data( lot ) : lot
+  }
+  class source_csv {
+    +recupere_data() : lots
+    +normalise_data( lot ) : lot
+  }
+  class erreur_api <<exception>>
+  class erreur_csv <<exception>>
+
+  class stockage_postgres {
+    +insere( lot ) : nouvelles
+    +detecte_alertes() : alertes
+  }
+  class erreur_stockage <<exception>>
+
+  class AnalyseurDeDonnees {
+    +resume() : dict
+    +moyenne_mobile( fenetre ) : Serie
+    +detecter_tendance( fenetre ) : float
+    +rapport_alerte( seuil ) : dict
+  }
+  class Indicateur {
+    +en_alerte( valeur ) : bool
+  }
+}
+
+source_data <|-- source_api
+source_data <|-- source_csv
+source_api ..> erreur_api : "leve"
+source_csv ..> erreur_csv : "leve"
+stockage_postgres ..> erreur_stockage : "leve"
+
+package "indicateurs (Django - modeles)" {
+
+  class Mesure {
+    +ville
+    +indicateur
+    +date_mesure
+    +valeur
+  }
+  class Categorie {
+    +nom
+  }
+  class IndicateurRef {
+    +nom
+    +unite
+    +seuil_alerte
+    +categorie (FK)
+  }
+  class Source {
+    +nom
+  }
+  class Alerte {
+    +valeur
+    +seuil
+    +date_mesure
+    +mesure (FK)
+    +indicateur (FK)
+  }
+  class Import <<journal>>
+}
+
+IndicateurRef "N" --> "1" Categorie : "categorie FK"
+Alerte "N" --> "1" Mesure : "mesure FK"
+Alerte "N" --> "1" IndicateurRef : "indicateur FK"
+
+Mesure ..> IndicateurRef : "lien logique (par nom)"
+Mesure ..> Source : "lien logique (provenance)"
+
+note bottom of Mesure
+  Mesure est la table de faits (2,4 M lignes) :
+  ville et indicateur stockes en clair,
+  unicite (ville, indicateur, date) en SQL.
+end note
+
+note right of stockage_postgres
+  Le pipeline est une fonction libre :
+  execute(sources, stockage)
+  orchestre le tout.
+end note
+@enduml
