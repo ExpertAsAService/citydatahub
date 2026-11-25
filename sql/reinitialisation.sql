@@ -9,7 +9,7 @@ Date : 21 Novembre 2026
 Version : 1.0
 Licence : MIT
 eUsage : psql -d citydatahub -v ON_ERROR_STOP=1 -f sql/reinitialisation.sql
-ou    : psql -d citydatahub_test -v ON_ERROR_STOP=1 -f sql/reinitialisation.sql
+ou     : psql -d citydatahub_test -v ON_ERROR_STOP=1 -f sql/reinitialisation.sql
 */
 
 \set ON_ERROR_STOP on
