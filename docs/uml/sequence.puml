@@ -6,6 +6,7 @@ title Diagramme de sequence - Import CSV\n(Utilisateur vers Django vers PostgreS
 actor "Administrateur (navigateur)" as U
 participant "Django\nviews.import_csv" as DJ
 participant "FormulaireImport\n(forms.py)" as FO
+participant "source_csv\n(module_csv.py, pipeline)" as SC
 participant "stockage_postgres\n(insere / detecte_alertes)" as ST
 database "PostgreSQL\n(citydatahub)" as PG
 
@@ -17,6 +18,8 @@ FO --> DJ : formulaire valide / erreur de structure
 alt fichier invalide
     DJ --> U : message d'erreur (structure attendue)
 end
+DJ -> SC : lit et normalise le fichier
+SC --> DJ : lots normalises
 DJ -> ST : insere( lot )
 ST -> PG : INSERT ... ON CONFLICT DO NOTHING\n(par lots de 10 000)
 PG --> ST : lignes nouvelles (= compteur)

@@ -116,6 +116,7 @@ sequenceDiagram
     actor U as Administrateur
     participant DJ as Django views.import_csv
     participant FO as FormulaireImport
+    participant SC as source_csv (pipeline)
     participant ST as stockage_postgres
     participant PG as PostgreSQL
 
@@ -127,6 +128,8 @@ sequenceDiagram
     alt fichier invalide
         DJ-->>U: message d'erreur (structure attendue)
     end
+    DJ->>SC: lit et normalise le fichier (via le pipeline)
+    SC-->>DJ: lots normalises
     DJ->>ST: insere(lot)
     ST->>PG: INSERT ... ON CONFLICT DO NOTHING (lots)
     PG-->>ST: lignes nouvelles
