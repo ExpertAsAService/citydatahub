@@ -121,6 +121,10 @@ USE_TZ = True
 LOGIN_URL = "/admin/login/"
 STATIC_URL = "static/"
 
+# Expiration de la session après 15 minutes
+SESSION_COOKIE_AGE = 60 * 15
+SESSION_SAVE_EVERY_REQUEST = True 
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
