@@ -181,6 +181,12 @@ Tout tourne sur une machine NixOS : PostgreSQL, les timers et le
 pare-feu sont déclarés dans la configuration du système, le reste
 du projet est un dépôt Python classique.
 
+Cette section décrit l'installation **sur un NixOS déjà en place**.
+Pour une installation complète depuis une machine vierge (création
+de la VM, installation de NixOS, partitionnement, reconstruction du
+système déclaré), voir `docs/installation.md` ; pour les procédures
+d'exploitation au quotidien, voir `docs/mode-operatoire.md`.
+
 ### Prérequis
 
 - NixOS 26.05 (machine de référence : `cdh2026`)
@@ -250,7 +256,19 @@ bash scripts/demo.sh
 
 Schéma, référentiels, collecte des quatre sources API, import CSV,
 contenu de la base, 47 tests, et les rappels du serveur web — tout
-l'enchaîné en une seule entrée.
+l'enchaîné en une seule entrée. Rejouable : une seconde exécution
+n'insère rien (idempotence prouvée à l'écran).
+
+### Preuves d'intégration (une commande)
+
+```bash
+bash scripts/demo_integration.sh
+```
+
+Cinq propriétés sur la base de test : réinitialisation à l'état
+connu, rejeu du schéma sans erreur, absorption d'un doublon,
+rejet d'une alerte orpheline par la clé étrangère, idempotence
+de la détection. Jamais sur la production.
 
 ### Sauvegardes (contre-épreuve incluse)
 
@@ -278,12 +296,6 @@ de fichiers CSV via formulaires, derrière l'authentification admin
 (les choix de collecte dérivent du registre réel des sources :
 impossible de sélectionner une source inexistante) ; API JSON :
 `/api/mesures/<indicateur>`.
-
-### Tests
-
-```bash
-pytest tests/
-```
 
 ## Fonctionnement quotidien
 
